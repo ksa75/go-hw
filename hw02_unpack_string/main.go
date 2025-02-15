@@ -1,0 +1,72 @@
+package main
+
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+	"unicode"
+	"unicode/utf8"
+)
+
+var ErrInvalidString = errors.New("invalid string")
+
+func Unpack(input string) (string, error) {
+	var result strings.Builder
+
+	var prevch rune
+	nextzero := false
+
+	i := 0
+	for i < len(input) {
+		ch, size := utf8.DecodeRuneInString(input[i:])
+		if ch == utf8.RuneError {
+			return "", fmt.Errorf("неправильный символ в строке")
+		}
+
+		//проверка следующего на ноль
+		nextch, _ := utf8.DecodeRuneInString(input[i+size:])
+		if unicode.IsDigit(nextch) {
+			if nextch == '0' {
+				nextzero = true
+			}
+		}
+
+		//обработка числа
+		if unicode.IsDigit(ch) {
+			if i == 0 {
+				return "", fmt.Errorf("число вначале")
+			}
+
+			if unicode.IsDigit(prevch) {
+				return "", fmt.Errorf("неправильное количество")
+			}
+
+			if repeatCount, _ := strconv.Atoi(string(ch)); repeatCount != 0 {
+				result.WriteString(strings.Repeat(string(prevch), repeatCount-1))
+			}
+			i += 1
+			prevch = ch
+
+			continue
+		}
+
+		//добавляем если следущее не ноль
+		if !nextzero {
+			result.WriteRune(ch)
+		}
+
+		nextzero = false
+		prevch = ch
+		i += size
+	}
+
+	return result.String(), nil
+}
+
+func main() {
+	str := `d2Я\3Я\\3aв6`
+
+	ustr, err := Unpack(str)
+	fmt.Println(ustr, err)
+}
