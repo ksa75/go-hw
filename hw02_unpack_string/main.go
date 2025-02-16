@@ -11,12 +11,15 @@ import (
 
 var ErrInvalidString = errors.New("invalid string")
 
+func isEscapable(r rune) bool {
+	return unicode.IsDigit(r) //|| r == '\\'
+}
+
 func Unpack(input string) (string, error) {
 	var result strings.Builder
 
 	var prev_ch, next_ch rune
 	var next_zero, escape, escaped, prev_escaped bool
-
 	i := 0
 	for i < len(input) {
 		ch, size := utf8.DecodeRuneInString(input[i:])
@@ -35,7 +38,7 @@ func Unpack(input string) (string, error) {
 
 		//сейчас у нас экран
 		if ch == '\\' {
-			if next_ch != '\\' && !unicode.IsDigit(next_ch) {
+			if !isEscapable(next_ch) {
 				return "", fmt.Errorf("неправильное экранирование")
 			} else {
 				escape = true
@@ -43,7 +46,7 @@ func Unpack(input string) (string, error) {
 		}
 
 		//символ заэкранирован
-		if escape && unicode.IsDigit(ch) {
+		if escape && isEscapable(ch) {
 			escaped = true
 			escape = false
 		}
@@ -56,19 +59,24 @@ func Unpack(input string) (string, error) {
 		}
 
 		//обработка числа
-		if unicode.IsDigit(ch) && !escape {
+		if unicode.IsDigit(ch) {
 			if i == 0 {
 				return "", fmt.Errorf("число вначале")
 			}
 
 			if unicode.IsDigit(prev_ch) && !prev_escaped {
+				// fmt.Println(string(ch), unicode.IsDigit(prev_ch), !prev_escaped)
 				return "", fmt.Errorf("неправильное количество")
 			}
 
 			if repeatCount, _ := strconv.Atoi(string(ch)); repeatCount != 0 {
 				if escaped {
-					result.WriteString(strings.Repeat(string(ch), 1))
+					//добавляем если экранировано и следущее не ноль
+					if !next_zero {
+						result.WriteString(strings.Repeat(string(ch), 1))
+					}
 				} else {
+					//добиваем по счетчику
 					result.WriteString(strings.Repeat(string(prev_ch), repeatCount-1))
 				}
 				prev_escaped = false
@@ -95,7 +103,7 @@ func Unpack(input string) (string, error) {
 }
 
 func main() {
-	str := `q3we\4\5`
+	str := `q3w0e\40\50\\`
 
 	ustr, err := Unpack(str)
 	fmt.Println(ustr, err)
