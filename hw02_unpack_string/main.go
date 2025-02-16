@@ -94,7 +94,7 @@ func Unpack(input string) (string, error) {
 }
 
 func main() {
-	str := `d2Я\32Яa2в6`
+	str := "a4bc2d5e"
 
 	ustr, err := Unpack(str)
 	fmt.Println(ustr, err)
