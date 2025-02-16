@@ -14,18 +14,23 @@ var ErrInvalidString = errors.New("invalid string")
 func Unpack(input string) (string, error) {
 	var result strings.Builder
 
-	var prevch rune
+	var prevch, nextch rune
 	nextzero := false
 
 	i := 0
 	for i < len(input) {
 		ch, size := utf8.DecodeRuneInString(input[i:])
-		if ch == utf8.RuneError {
+		// fmt.Println(utf8.RuneCount([]byte(input)))
+		// fmt.Println(i)
+		if i < utf8.RuneCount([]byte(input)) {
+			nextch, _ = utf8.DecodeRuneInString(input[i+size:])
+		}
+		if ch == utf8.RuneError || nextch == utf8.RuneError {
+			fmt.Println(string(ch), string(nextch))
 			return "", fmt.Errorf("неправильный символ в строке")
 		}
 
 		//проверка следующего на ноль
-		nextch, _ := utf8.DecodeRuneInString(input[i+size:])
 		if unicode.IsDigit(nextch) {
 			if nextch == '0' {
 				nextzero = true
