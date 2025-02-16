@@ -22,7 +22,8 @@ func Unpack(input string) (string, error) {
 		ch, size := utf8.DecodeRuneInString(input[i:])
 		next_ch, _ = utf8.DecodeRuneInString(input[i+size:])
 
-		if ch == utf8.RuneError || next_ch == utf8.RuneError {
+		if ch == utf8.RuneError {
+			fmt.Println(result.String())
 			return "", fmt.Errorf("неправильный символ в строке")
 		}
 
@@ -74,6 +75,7 @@ func Unpack(input string) (string, error) {
 			}
 			i += 1
 			prev_ch = ch
+			prev_escaped = false
 			continue
 		}
 
@@ -85,16 +87,16 @@ func Unpack(input string) (string, error) {
 		next_zero = false
 		prev_ch = ch
 		i += size
-
-		if i > utf8.RuneCount([]byte(input)) {
+		if len := utf8.RuneCount([]byte(input)); i > len {
 			break
 		}
 	}
+
 	return result.String(), nil
 }
 
 func main() {
-	str := "a4bc2d5e"
+	str := `a4b\12Я5c2d5e0`
 
 	ustr, err := Unpack(str)
 	fmt.Println(ustr, err)
