@@ -14,66 +14,87 @@ var ErrInvalidString = errors.New("invalid string")
 func Unpack(input string) (string, error) {
 	var result strings.Builder
 
-	var prevch, nextch rune
-	nextzero := false
+	var prev_ch, next_ch rune
+	var next_zero, escape, escaped, prev_escaped bool
 
 	i := 0
 	for i < len(input) {
 		ch, size := utf8.DecodeRuneInString(input[i:])
+		next_ch, _ = utf8.DecodeRuneInString(input[i+size:])
 
-		fmt.Println(utf8.RuneCount([]byte(input)))
-		fmt.Println(i)
-		if i < utf8.RuneCount([]byte(input)) {
-			nextch, _ = utf8.DecodeRuneInString(input[i+size:])
-		}
-		if ch == utf8.RuneError || nextch == utf8.RuneError {
-			fmt.Println(string(ch), string(nextch))
+		if ch == utf8.RuneError || next_ch == utf8.RuneError {
 			return "", fmt.Errorf("неправильный символ в строке")
 		}
 
-		//проверка следующего на ноль
-		if unicode.IsDigit(nextch) {
-			if nextch == '0' {
-				nextzero = true
+		//проверка следущего на ноль
+		if unicode.IsDigit(next_ch) {
+			if next_ch == '0' {
+				next_zero = true
 			}
 		}
 
+		//сейчас у нас экран
+		if ch == '\\' {
+			if next_ch != '\\' && !unicode.IsDigit(next_ch) && !escape {
+				return "", fmt.Errorf("неправильное экранирование")
+			} else {
+				escape = true
+			}
+		}
+
+		//символ заэкранирован
+		if escape && unicode.IsDigit(ch) {
+			escaped = true
+			escape = false
+		}
+
+		//предыдущий символ заэкранирован
+		if escaped && unicode.IsDigit(prev_ch) {
+			prev_escaped = true
+			escape = false
+			escaped = false
+		}
+
 		//обработка числа
-		if unicode.IsDigit(ch) {
+		if unicode.IsDigit(ch) && !escape {
 			if i == 0 {
 				return "", fmt.Errorf("число вначале")
 			}
 
-			if unicode.IsDigit(prevch) {
+			if unicode.IsDigit(prev_ch) && !prev_escaped {
 				return "", fmt.Errorf("неправильное количество")
 			}
 
 			if repeatCount, _ := strconv.Atoi(string(ch)); repeatCount != 0 {
-				result.WriteString(strings.Repeat(string(prevch), repeatCount-1))
+				if escaped {
+					result.WriteString(strings.Repeat(string(ch), 1))
+				} else {
+					result.WriteString(strings.Repeat(string(prev_ch), repeatCount-1))
+				}
 			}
 			i += 1
-			prevch = ch
-
+			prev_ch = ch
 			continue
 		}
 
-		//добавляем если следущее не ноль
-		if !nextzero {
+		//добавляем если не экран и следущее не ноль
+		if !next_zero && !escape {
 			result.WriteRune(ch)
 		}
 
-		nextzero = false
-		prevch = ch
+		next_zero = false
+		prev_ch = ch
 		i += size
 
 		if i > utf8.RuneCount([]byte(input)) {
-			return result.String(), nil
+			break
 		}
 	}
+	return result.String(), nil
 }
 
 func main() {
-	str := `d2Я\3Я\\3aв6`
+	str := `d2Я\32Яa2в6`
 
 	ustr, err := Unpack(str)
 	fmt.Println(ustr, err)
