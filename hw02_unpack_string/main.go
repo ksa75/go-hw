@@ -20,8 +20,9 @@ func Unpack(input string) (string, error) {
 	i := 0
 	for i < len(input) {
 		ch, size := utf8.DecodeRuneInString(input[i:])
-		// fmt.Println(utf8.RuneCount([]byte(input)))
-		// fmt.Println(i)
+
+		fmt.Println(utf8.RuneCount([]byte(input)))
+		fmt.Println(i)
 		if i < utf8.RuneCount([]byte(input)) {
 			nextch, _ = utf8.DecodeRuneInString(input[i+size:])
 		}
@@ -64,9 +65,11 @@ func Unpack(input string) (string, error) {
 		nextzero = false
 		prevch = ch
 		i += size
-	}
 
-	return result.String(), nil
+		if i > utf8.RuneCount([]byte(input)) {
+			return result.String(), nil
+		}
+	}
 }
 
 func main() {
