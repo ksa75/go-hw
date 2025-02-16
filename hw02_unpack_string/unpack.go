@@ -35,7 +35,7 @@ func Unpack(input string) (string, error) {
 		// сейчас у нас экран
 		if ch == '\\' {
 			if !isEscapable(nextCh) {
-				return "", fmt.Errorf("неправильное экранирование")
+				return "", fmt.Errorf("неправильное экранирование: %w", ErrInvalidString)
 			}
 			escape = true
 		}
@@ -56,12 +56,11 @@ func Unpack(input string) (string, error) {
 		// обработка числа
 		if unicode.IsDigit(ch) {
 			if i == 0 {
-				return "", fmt.Errorf("число вначале")
+				return "", fmt.Errorf("число вначале: %w", ErrInvalidString)
 			}
 
 			if unicode.IsDigit(prevCh) && !prevEscaped {
-				//  fmt.Println(string(ch), unicode.IsDigit(prevCh), !prevEscaped)
-				return "", fmt.Errorf("неправильное количество")
+				return "", fmt.Errorf("неправильное количество: %w", ErrInvalidString)
 			}
 
 			if repeatCount, _ := strconv.Atoi(string(ch)); repeatCount != 0 {
