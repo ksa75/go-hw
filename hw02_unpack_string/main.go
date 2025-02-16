@@ -23,7 +23,6 @@ func Unpack(input string) (string, error) {
 		next_ch, _ = utf8.DecodeRuneInString(input[i+size:])
 
 		if ch == utf8.RuneError {
-			fmt.Println(result.String())
 			return "", fmt.Errorf("неправильный символ в строке")
 		}
 
@@ -36,7 +35,7 @@ func Unpack(input string) (string, error) {
 
 		//сейчас у нас экран
 		if ch == '\\' {
-			if next_ch != '\\' && !unicode.IsDigit(next_ch) && !escape {
+			if next_ch != '\\' && !unicode.IsDigit(next_ch) {
 				return "", fmt.Errorf("неправильное экранирование")
 			} else {
 				escape = true
@@ -50,7 +49,7 @@ func Unpack(input string) (string, error) {
 		}
 
 		//предыдущий символ заэкранирован
-		if escaped && unicode.IsDigit(prev_ch) {
+		if escaped && unicode.IsDigit(prev_ch) && unicode.IsDigit(ch) {
 			prev_escaped = true
 			escape = false
 			escaped = false
@@ -72,10 +71,10 @@ func Unpack(input string) (string, error) {
 				} else {
 					result.WriteString(strings.Repeat(string(prev_ch), repeatCount-1))
 				}
+				prev_escaped = false
 			}
 			i += 1
 			prev_ch = ch
-			prev_escaped = false
 			continue
 		}
 
@@ -96,7 +95,7 @@ func Unpack(input string) (string, error) {
 }
 
 func main() {
-	str := `a4b\12Я5c2d5e0`
+	str := `q3we\4\5`
 
 	ustr, err := Unpack(str)
 	fmt.Println(ustr, err)
