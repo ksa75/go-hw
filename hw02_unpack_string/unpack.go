@@ -15,17 +15,13 @@ func Unpack(input string) (string, error) {
 	var result strings.Builder
 	var ch, prevCh, nextCh rune
 	var size int
-	i := 0
+	i, prevCh := 0, 0
 	for i < len(input) {
 		ch, size = utf8.DecodeRuneInString(input[i:])
 		nextCh, _ = utf8.DecodeRuneInString(input[i+size:])
 
 		if unicode.IsDigit(ch) {
-			if i == 0 {
-				return "", fmt.Errorf("число вначале: %w", ErrInvalidString)
-			}
-
-			if unicode.IsDigit(prevCh) {
+			if prevCh == 0 {
 				return "", fmt.Errorf("неправильное количество: %w", ErrInvalidString)
 			}
 			// добиваем по счетчику
@@ -33,7 +29,7 @@ func Unpack(input string) (string, error) {
 				result.WriteString(strings.Repeat(string(prevCh), repeatCount-1))
 			}
 			i++
-			prevCh = ch
+			prevCh = 0
 			continue
 		}
 
