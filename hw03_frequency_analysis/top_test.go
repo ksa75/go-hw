@@ -6,6 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Change to true if needed.
+var taskWithAsteriskIsCompleted = false
+
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
 	ступеньки собственным затылком:  бум-бум-бум.  Другого  способа
@@ -47,7 +50,16 @@ func TestTop10(t *testing.T) {
 		expected []string
 	}{
 		{name: "Empty", input: "", expected: []string{}},
-		{name: "Base", input: text, expected: []string{"он", "а", "и", "ты", "что", "-", "Кристофер", "если", "не", "то"}},
+		{
+			name:     "Base",
+			input:    text,
+			expected: []string{"он", "а", "и", "ты", "что", "-", "Кристофер", "если", "не", "то"},
+		},
+		{
+			name:     "*",
+			input:    text,
+			expected: []string{"а", "он", "и", "ты", "что", "в", "его", "если", "кристофер", "не"},
+		},
 		{name: "one word string", input: "word", expected: []string{"word"}},
 		{
 			name:     "test with less than 10 unique words",
@@ -58,6 +70,9 @@ func TestTop10(t *testing.T) {
 
 	for _, tc := range tests {
 		tc := tc
+		if !taskWithAsteriskIsCompleted && tc.name == "*" {
+			continue
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			result := Top10(tc.input)
 			assert.Equal(t, tc.expected, result)
