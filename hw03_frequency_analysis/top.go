@@ -1,14 +1,13 @@
 package hw03frequencyanalysis
 
 import (
-	"fmt"
 	"regexp"
 	"sort"
 )
 
 var re = regexp.MustCompile(`\S+`)
 
-func Top10(text string) []string {
+func Top10(text string) ([]string, []int) {
 	wordCounts := make(map[string]int)
 	// Используем регулярное выражение для разделения слов
 	words := re.FindAllString(text, -1)
@@ -37,10 +36,11 @@ func Top10(text string) []string {
 
 	// Формируем результат из топ-10 слов
 	result := make([]string, 0, 10)
+	resultI := make([]int, 0, 10)
 	for i := 0; i < len(wordList) && i < 10; i++ {
-		fmt.Println(wordList[i].count)
 		result = append(result, wordList[i].word)
+		resultI = append(resultI, wordList[i].count)
 	}
 
-	return result
+	return result, resultI
 }
