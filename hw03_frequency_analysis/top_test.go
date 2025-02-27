@@ -69,7 +69,6 @@ func TestTop10(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		if !taskWithAsteriskIsCompleted && tc.name == "*" {
 			continue
 		}
