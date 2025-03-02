@@ -19,7 +19,7 @@ type lruCache struct {
 func NewCache(capacity int) Cache {
 	return &lruCache{
 		capacity: capacity,
-		queue:    *NewList(),
+		queue:    NewList(),
 		items:    make(map[Key]*ListItem, capacity),
 	}
 }
