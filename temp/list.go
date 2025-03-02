@@ -1,17 +1,16 @@
-package hw04lrucache
+package main
 
 import "fmt"
 
-type List interface {
-	Len() int
-	Front() *ListItem
-	Back() *ListItem
-	PushFront(v interface{}) *ListItem
-	PushBack(v interface{}) *ListItem
-	Remove(i *ListItem)
-	MoveToFront(i *ListItem)
-	Print()
-}
+// type List interface {
+// 	Len() int
+// 	Front() *ListItem
+// 	Back() *ListItem
+// 	PushFront(v interface{}) *ListItem
+// 	PushBack(v interface{}) *ListItem
+// 	Remove(i *ListItem)
+// 	MoveToFront(i *ListItem)
+// }
 
 type ListItem struct {
 	Value interface{}
@@ -19,39 +18,38 @@ type ListItem struct {
 	Prev  *ListItem
 }
 
-type list struct {
+type List struct {
 	len  int       // длина списка
 	head *ListItem // первый элемент списка
 	tail *ListItem // последний элемент списка
 }
 
-// Конструктор нового списка
-func NewList() List {
-	return &list{}
-}
-
-func (l *list) Print() {
+func (l *List) Print() {
 	for item := l.Front(); item != nil; item = item.Next {
 		fmt.Println(item.Value)
 	}
 }
 
-// Метод Len возвращает длину списка
-func (l *list) Len() int {
+func NewList() *List {
+	return &List{}
+}
+
+func (l *List) Len() int {
 	return l.len
 }
 
 // Метод Front возвращает первый элемент списка
-func (l *list) Front() *ListItem {
+func (l *List) Front() *ListItem {
 	return l.head
 }
 
 // Метод Back возвращает последний элемент списка
-func (l *list) Back() *ListItem {
+func (l *List) Back() *ListItem {
 	return l.tail
 }
 
-func (l *list) PushFront(v interface{}) *ListItem {
+// Метод PushFront добавляет элемент в начало списка
+func (l *List) PushFront(v interface{}) *ListItem {
 	item := &ListItem{Value: v}
 
 	// Если список пуст, новый элемент будет и первым, и последним
@@ -70,7 +68,7 @@ func (l *list) PushFront(v interface{}) *ListItem {
 }
 
 // Метод PushBack добавляет элемент в конец списка
-func (l *list) PushBack(v interface{}) *ListItem {
+func (l *List) PushBack(v interface{}) *ListItem {
 	item := &ListItem{Value: v}
 
 	// Если список пуст, новый элемент будет и первым, и последним
@@ -89,7 +87,7 @@ func (l *list) PushBack(v interface{}) *ListItem {
 }
 
 // Метод Remove удаляет элемент из списка
-func (l *list) Remove(i *ListItem) {
+func (l *List) Remove(i *ListItem) {
 	if i == nil {
 		return
 	}
@@ -116,7 +114,7 @@ func (l *list) Remove(i *ListItem) {
 }
 
 // Метод MoveToFront перемещает элемент в начало списка
-func (l *list) MoveToFront(i *ListItem) {
+func (l *List) MoveToFront(i *ListItem) {
 	if i == nil || i == l.head {
 		return
 	}
@@ -127,3 +125,35 @@ func (l *list) MoveToFront(i *ListItem) {
 	// Добавляем элемент в начало
 	l.PushFront(i.Value)
 }
+
+// func main() {
+// 	list := NewList()
+
+// 	// Добавляем элементы в список
+// 	list.PushBack(1)
+// 	fmt.Println("1st element:", list.Front().Value)
+// 	fmt.Println("last element:", list.Back().Value)
+
+// 	list.PushBack(2)
+// 	list.PushBack(3)
+// 	list.PushFront(0)
+
+// 	list.Print()
+// 	fmt.Println("1st element:", list.Front().Value)
+// 	fmt.Println("last element:", list.Back().Value)
+
+// 	// Проверим длину списка
+// 	fmt.Println("Length of list:", list.Len()) // Output: 4
+
+// 	// Перемещаем элемент в начало
+// 	list.MoveToFront(list.Back()) // Перемещаем последний элемент в начало
+
+// 	list.Print()
+
+// 	// Удаляем элемент
+// 	list.Remove(list.Front()) // Удаляем первый элемент
+
+// 	// Выводим элементы после удаления
+// 	fmt.Println("After remove:")
+// 	list.Print()
+// }

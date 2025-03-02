@@ -1,16 +1,17 @@
 package hw04lrucache
 
+import "fmt"
+
 type Key string
 
 type Cache interface {
 	Set(key Key, value interface{}) bool
 	Get(key Key) (interface{}, bool)
+	Print()
 	Clear()
 }
 
 type lruCache struct {
-	Cache // Remove me after realization.
-
 	capacity int
 	queue    List
 	items    map[Key]*ListItem
@@ -21,5 +22,68 @@ func NewCache(capacity int) Cache {
 		capacity: capacity,
 		queue:    NewList(),
 		items:    make(map[Key]*ListItem, capacity),
+	}
+}
+
+// Set добавляет или обновляет элемент в кэше
+func (c *lruCache) Set(key Key, value interface{}) bool {
+	if item, exists := c.items[key]; exists {
+		// Если элемент существует, обновляем его значение
+		item.Value = value
+		// Перемещаем элемент в начало очереди
+		c.queue.MoveToFront(item)
+		return false
+	}
+
+	// Если элемента нет, создаём новый
+	item := &ListItem{Value: value}
+	// Добавляем в очередь и в словарь
+	c.items[key] = item
+	c.queue.PushFront(item)
+
+	// Если кэш переполнен, удаляем последний элемент
+	if c.queue.Len() > c.capacity {
+		// Удаляем элемент из очереди и из словаря
+		removed := c.queue.Back()
+		c.queue.Remove(removed)
+		for key, item := range c.items {
+			if item == removed {
+				delete(c.items, key)
+				break
+			}
+		}
+	}
+
+	return true
+}
+
+// Get возвращает элемент из кэша по ключу
+func (c *lruCache) Get(key Key) (interface{}, bool) {
+	if item, exists := c.items[key]; exists {
+		// Перемещаем элемент в начало очереди, так как он был использован
+		c.queue.MoveToFront(item)
+		return item.Value, true
+	}
+	return nil, false
+}
+
+// Clear очищает кэш
+func (c *lruCache) Clear() {
+	c.queue = NewList()                           // Перезапускаем очередь
+	c.items = make(map[Key]*ListItem, c.capacity) // Очищаем словарь
+}
+
+// Print печатает элементы кэша для отладки
+func (c *lruCache) Print() {
+	// Печатаем элементы кэша (содержимое очереди)
+	fmt.Println("Состояние кэша:")
+
+	// Получаем все элементы из очереди
+	current := c.queue.Front()
+	for current != nil {
+		if item, ok := current.Value.(*ListItem); ok {
+			fmt.Printf("%v\n", item.Value)
+		}
+		current = current.Next
 	}
 }
