@@ -25,14 +25,14 @@ func NewCache(capacity int) Cache {
 	}
 }
 
-// Set добавляет или обновляет элемент в кэше
+// Set добавляет или обновляет элемент в кэше.
 func (c *lruCache) Set(key Key, value interface{}) bool {
 	if item, exists := c.items[key]; exists {
 		// Если элемент существует, обновляем его значение
 		item.Value = value
 		// Перемещаем элемент в начало очереди
 		c.queue.MoveToFront(item)
-		return false
+		return true
 	}
 
 	// Если элемента нет, создаём новый
@@ -46,34 +46,39 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 		// Удаляем элемент из очереди и из словаря
 		removed := c.queue.Back()
 		c.queue.Remove(removed)
+		// fmt.Println(removed)
+		// fmt.Println(removed.Value)
+
 		for key, item := range c.items {
-			if item == removed {
+			// fmt.Println(item)
+			if item == removed.Value {
 				delete(c.items, key)
 				break
 			}
 		}
 	}
 
-	return true
+	return false
 }
 
-// Get возвращает элемент из кэша по ключу
+// Get возвращает элемент из кэша по ключу.
 func (c *lruCache) Get(key Key) (interface{}, bool) {
 	if item, exists := c.items[key]; exists {
 		// Перемещаем элемент в начало очереди, так как он был использован
+		// fmt.Println(item)
 		c.queue.MoveToFront(item)
 		return item.Value, true
 	}
 	return nil, false
 }
 
-// Clear очищает кэш
+// Clear очищает кэш.
 func (c *lruCache) Clear() {
 	c.queue = NewList()                           // Перезапускаем очередь
 	c.items = make(map[Key]*ListItem, c.capacity) // Очищаем словарь
 }
 
-// Print печатает элементы кэша для отладки
+// Print печатает элементы кэша для отладки.
 func (c *lruCache) Print() {
 	// Печатаем элементы кэша (содержимое очереди)
 	fmt.Println("Состояние кэша:")
@@ -85,5 +90,11 @@ func (c *lruCache) Print() {
 			fmt.Printf("%v\n", item.Value)
 		}
 		current = current.Next
+	}
+
+	// Печатаем словарь
+	fmt.Println("Словарь:")
+	for key, item := range c.items {
+		fmt.Printf("%v: %v\n", key, item.Value)
 	}
 }

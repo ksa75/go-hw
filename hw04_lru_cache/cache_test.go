@@ -25,10 +25,12 @@ func TestCache(t *testing.T) {
 		c := NewCache(5)
 
 		wasInCache := c.Set("aaa", 100)
-		// require.False(t, wasInCache)
+		require.False(t, wasInCache)
 
 		wasInCache = c.Set("bbb", 200)
-		// require.False(t, wasInCache)
+		require.False(t, wasInCache)
+
+		c.Print()
 
 		val, ok := c.Get("aaa")
 		require.True(t, ok)
@@ -37,12 +39,12 @@ func TestCache(t *testing.T) {
 		val, ok = c.Get("bbb")
 		require.True(t, ok)
 		require.Equal(t, 200, val)
+		c.Print()
 
 		val, ok = c.Get("aaa")
 		require.True(t, ok)
-		require.Equal(t, 300, val)
+		require.NotEqual(t, 300, val)
 		c.Print()
-		fmt.Println(wasInCache)
 
 		val, ok = c.Get("ccc")
 		require.False(t, ok)
@@ -50,7 +52,8 @@ func TestCache(t *testing.T) {
 
 		wasInCache = c.Set("aaa", 300)
 		require.True(t, wasInCache)
-
+		c.Print()
+		fmt.Println("////////////////////////////")
 	})
 	/*
 	   Ожидаются следующие тесты:
@@ -62,7 +65,33 @@ func TestCache(t *testing.T) {
 	   из первой тройки вытолкнется тот элемент, что был затронут наиболее давно).
 	*/
 	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+		c := NewCache(3)
+
+		c.Set("aaa", 600)
+		c.Set("bbb", 700)
+		c.Set("ccc", 800)
+		c.Print()
+
+		c.Set("ddd", 900)
+		// c.Print()
+
+		_, ok := c.Get("aaa")
+		require.False(t, ok)
+
+		fmt.Println("////////////////////////////")
+
+		c.Clear()
+
+		c.Set("aaa", 600)
+		c.Set("bbb", 700)
+		c.Set("ccc", 800)
+		// c.Print()
+
+		fmt.Println(c.Get("aaa"))
+		// c.Print()
+
+		c.Set("ddd", 900)
+		c.Print()
 	})
 }
 

@@ -25,7 +25,7 @@ type list struct {
 	tail *ListItem // последний элемент списка
 }
 
-// Конструктор нового списка
+// Конструктор нового списка.
 func NewList() List {
 	return &list{}
 }
@@ -36,17 +36,17 @@ func (l *list) Print() {
 	}
 }
 
-// Метод Len возвращает длину списка
+// Метод Len возвращает длину списка.
 func (l *list) Len() int {
 	return l.len
 }
 
-// Метод Front возвращает первый элемент списка
+// Метод Front возвращает первый элемент списка.
 func (l *list) Front() *ListItem {
 	return l.head
 }
 
-// Метод Back возвращает последний элемент списка
+// Метод Back возвращает последний элемент списка.
 func (l *list) Back() *ListItem {
 	return l.tail
 }
@@ -69,7 +69,7 @@ func (l *list) PushFront(v interface{}) *ListItem {
 	return item
 }
 
-// Метод PushBack добавляет элемент в конец списка
+// Метод PushBack добавляет элемент в конец списка.
 func (l *list) PushBack(v interface{}) *ListItem {
 	item := &ListItem{Value: v}
 
@@ -88,7 +88,7 @@ func (l *list) PushBack(v interface{}) *ListItem {
 	return item
 }
 
-// Метод Remove удаляет элемент из списка
+// Метод Remove удаляет элемент из списка.
 func (l *list) Remove(i *ListItem) {
 	if i == nil {
 		return
@@ -115,7 +115,7 @@ func (l *list) Remove(i *ListItem) {
 	l.len--
 }
 
-// Метод MoveToFront перемещает элемент в начало списка
+// Метод MoveToFront перемещает элемент в начало списка.
 func (l *list) MoveToFront(i *ListItem) {
 	if i == nil || i == l.head {
 		return
