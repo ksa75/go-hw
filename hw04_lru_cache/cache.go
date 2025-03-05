@@ -7,7 +7,7 @@ type Key string
 type Cache interface {
 	Set(key Key, value interface{}) bool
 	Get(key Key) (interface{}, bool)
-	Print()
+	// Print()
 	Clear()
 }
 
@@ -38,8 +38,8 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 	// Если элемента нет, создаём новый
 	item := &ListItem{Value: value}
 	// Добавляем в очередь и в словарь
-	c.items[key] = item
 	c.queue.PushFront(item)
+	c.items[key] = c.queue.Front()
 
 	// Если кэш переполнен, удаляем последний элемент
 	if c.queue.Len() > c.capacity {
@@ -51,7 +51,7 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 
 		for key, item := range c.items {
 			// fmt.Println(item)
-			if item == removed.Value {
+			if item == removed {
 				delete(c.items, key)
 				break
 			}
@@ -64,15 +64,13 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 // Get возвращает элемент из кэша по ключу.
 func (c *lruCache) Get(key Key) (interface{}, bool) {
 	if item, exists := c.items[key]; exists {
-		// Перемещаем элемент в начало очереди, так как он был использован
-		// fmt.Println(item)
 		c.queue.MoveToFront(item)
-		return item.Value, true
+		i, _ := item.Value.(*ListItem)
+		return i.Value, true
 	}
 	return nil, false
 }
 
-// Clear очищает кэш.
 func (c *lruCache) Clear() {
 	c.queue = NewList()                           // Перезапускаем очередь
 	c.items = make(map[Key]*ListItem, c.capacity) // Очищаем словарь
@@ -91,10 +89,12 @@ func (c *lruCache) Print() {
 		}
 		current = current.Next
 	}
-
 	// Печатаем словарь
 	fmt.Println("Словарь:")
 	for key, item := range c.items {
-		fmt.Printf("%v: %v\n", key, item.Value)
+		fmt.Printf("%v: %v\n", key, item)
+		if i, ok := item.Value.(*ListItem); ok {
+			fmt.Printf("%v\n", i.Value)
+		}
 	}
 }

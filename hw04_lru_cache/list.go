@@ -10,7 +10,7 @@ type List interface {
 	PushBack(v interface{}) *ListItem
 	Remove(i *ListItem)
 	MoveToFront(i *ListItem)
-	Print()
+	// Print()
 }
 
 type ListItem struct {
@@ -28,12 +28,6 @@ type list struct {
 // Конструктор нового списка.
 func NewList() List {
 	return &list{}
-}
-
-func (l *list) Print() {
-	for item := l.Front(); item != nil; item = item.Next {
-		fmt.Println(item.Value)
-	}
 }
 
 // Метод Len возвращает длину списка.
@@ -126,4 +120,10 @@ func (l *list) MoveToFront(i *ListItem) {
 
 	// Добавляем элемент в начало
 	l.PushFront(i.Value)
+}
+
+func (l *list) Print() {
+	for item := l.Front(); item != nil; item = item.Next {
+		fmt.Println(item.Value)
+	}
 }
