@@ -15,6 +15,7 @@ type lruCache struct {
 	capacity int
 	queue    List
 	items    map[Key]*ListItem
+	revMap   map[*ListItem]Key
 }
 
 func NewCache(capacity int) Cache {
@@ -22,6 +23,7 @@ func NewCache(capacity int) Cache {
 		capacity: capacity,
 		queue:    NewList(),
 		items:    make(map[Key]*ListItem, capacity),
+		revMap:   make(map[*ListItem]Key, capacity),
 	}
 }
 
@@ -40,22 +42,15 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 	// Добавляем в очередь и в словарь
 	c.queue.PushFront(item)
 	c.items[key] = c.queue.Front()
+	c.revMap[c.queue.Front()] = key
 
 	// Если кэш переполнен, удаляем последний элемент
 	if c.queue.Len() > c.capacity {
 		// Удаляем элемент из очереди и из словаря
 		removed := c.queue.Back()
 		c.queue.Remove(removed)
-		// fmt.Println(removed)
-		// fmt.Println(removed.Value)
-
-		for key, item := range c.items {
-			// fmt.Println(item)
-			if item == removed {
-				delete(c.items, key)
-				break
-			}
-		}
+		delete(c.items, c.revMap[removed])
+		delete(c.revMap, removed)
 	}
 
 	return false
@@ -74,6 +69,7 @@ func (c *lruCache) Get(key Key) (interface{}, bool) {
 func (c *lruCache) Clear() {
 	c.queue = NewList()                           // Перезапускаем очередь
 	c.items = make(map[Key]*ListItem, c.capacity) // Очищаем словарь
+	c.revMap = make(map[*ListItem]Key, c.capacity)
 }
 
 // Print печатает элементы кэша для отладки.
@@ -96,5 +92,9 @@ func (c *lruCache) Print() {
 		if i, ok := item.Value.(*ListItem); ok {
 			fmt.Printf("%v\n", i.Value)
 		}
+	}
+	// Печатаем rev словарь
+	for key, item := range c.revMap {
+		fmt.Printf("%v: %v\n", key, item)
 	}
 }
