@@ -11,11 +11,15 @@ type Cache interface {
 	Clear()
 }
 
+type cacheItem struct {
+	value interface{}
+	key   Key
+}
+
 type lruCache struct {
 	capacity int
 	queue    List
 	items    map[Key]*ListItem
-	revMap   map[*ListItem]Key
 }
 
 func NewCache(capacity int) Cache {
@@ -23,7 +27,6 @@ func NewCache(capacity int) Cache {
 		capacity: capacity,
 		queue:    NewList(),
 		items:    make(map[Key]*ListItem, capacity),
-		revMap:   make(map[*ListItem]Key, capacity),
 	}
 }
 
@@ -31,28 +34,29 @@ func NewCache(capacity int) Cache {
 func (c *lruCache) Set(key Key, value interface{}) bool {
 	if item, exists := c.items[key]; exists {
 		// Если элемент существует, обновляем его значение
-		item.Value = value
+		item.Value = cacheItem{value, key}
 		// Перемещаем элемент в начало очереди
 		c.queue.MoveToFront(item)
 		return true
 	}
 
 	// Если элемента нет, создаём новый
-	item := &ListItem{Value: value}
+	item := &ListItem{Value: cacheItem{value, key}}
 	// Добавляем в очередь и в словарь
 	c.queue.PushFront(item)
 	c.items[key] = c.queue.Front()
-	c.revMap[c.queue.Front()] = key
 
 	// Если кэш переполнен, удаляем последний элемент
 	if c.queue.Len() > c.capacity {
 		// Удаляем элемент из очереди и из словаря
 		removed := c.queue.Back()
-		c.queue.Remove(removed)
-		delete(c.items, c.revMap[removed])
-		delete(c.revMap, removed)
+		if i, ok := removed.Value.(*ListItem); ok {
+			if j, ok := i.Value.(cacheItem); ok {
+				delete(c.items, j.key)
+				c.queue.Remove(removed)
+			}
+		}
 	}
-
 	return false
 }
 
@@ -60,8 +64,11 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 func (c *lruCache) Get(key Key) (interface{}, bool) {
 	if item, exists := c.items[key]; exists {
 		c.queue.MoveToFront(item)
-		i, _ := item.Value.(*ListItem)
-		return i.Value, true
+		if i, ok := item.Value.(*ListItem); ok {
+			if j, ok := i.Value.(cacheItem); ok {
+				return j.value, true
+			}
+		}
 	}
 	return nil, false
 }
@@ -69,14 +76,12 @@ func (c *lruCache) Get(key Key) (interface{}, bool) {
 func (c *lruCache) Clear() {
 	c.queue = NewList()                           // Перезапускаем очередь
 	c.items = make(map[Key]*ListItem, c.capacity) // Очищаем словарь
-	c.revMap = make(map[*ListItem]Key, c.capacity)
 }
 
 // Print печатает элементы кэша для отладки.
 func (c *lruCache) Print() {
 	// Печатаем элементы кэша (содержимое очереди)
 	fmt.Println("Состояние кэша:")
-
 	// Получаем все элементы из очереди
 	current := c.queue.Front()
 	for current != nil {
@@ -88,13 +93,6 @@ func (c *lruCache) Print() {
 	// Печатаем словарь
 	fmt.Println("Словарь:")
 	for key, item := range c.items {
-		fmt.Printf("%v: %v\n", key, item)
-		if i, ok := item.Value.(*ListItem); ok {
-			fmt.Printf("%v\n", i.Value)
-		}
-	}
-	// Печатаем rev словарь
-	for key, item := range c.revMap {
 		fmt.Printf("%v: %v\n", key, item)
 	}
 }
