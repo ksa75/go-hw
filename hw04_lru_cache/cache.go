@@ -41,20 +41,17 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 	}
 
 	// Если элемента нет, создаём новый
-	item := &ListItem{Value: cacheItem{value, key}}
 	// Добавляем в очередь и в словарь
-	c.queue.PushFront(item)
+	c.queue.PushFront(cacheItem{value, key})
 	c.items[key] = c.queue.Front()
 
 	// Если кэш переполнен, удаляем последний элемент
 	if c.queue.Len() > c.capacity {
 		// Удаляем элемент из очереди и из словаря
 		removed := c.queue.Back()
-		if i, ok := removed.Value.(*ListItem); ok {
-			if j, ok := i.Value.(cacheItem); ok {
-				delete(c.items, j.key)
-				c.queue.Remove(removed)
-			}
+		if j, ok := removed.Value.(cacheItem); ok {
+			delete(c.items, j.key)
+			c.queue.Remove(removed)
 		}
 	}
 	return false
@@ -64,10 +61,9 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 func (c *lruCache) Get(key Key) (interface{}, bool) {
 	if item, exists := c.items[key]; exists {
 		c.queue.MoveToFront(item)
-		if i, ok := item.Value.(*ListItem); ok {
-			if j, ok := i.Value.(cacheItem); ok {
-				return j.value, true
-			}
+
+		if j, ok := item.Value.(cacheItem); ok {
+			return j.value, true
 		}
 	}
 	return nil, false
