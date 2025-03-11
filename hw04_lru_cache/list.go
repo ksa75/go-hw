@@ -118,8 +118,11 @@ func (l *list) MoveToFront(i *ListItem) {
 	// Удаляем элемент из текущего места
 	l.Remove(i)
 
-	// Добавляем элемент в начало
-	l.PushFront(i.Value)
+	// Перемещаем элемент в начало
+	i.Next = l.head
+	l.head.Prev = i
+	l.head = i
+	l.len++
 }
 
 func (l *list) Print() {
