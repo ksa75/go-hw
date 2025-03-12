@@ -26,7 +26,7 @@ func TestCache(t *testing.T) {
 		wasInCache := c.Set("aaa", 100)
 		require.False(t, wasInCache)
 
-		wasInCache = c.Set("bbb", 200)
+		wasInCache = c.Set("bbb", "200")
 		require.False(t, wasInCache)
 
 		val, ok := c.Get("aaa")
@@ -35,22 +35,46 @@ func TestCache(t *testing.T) {
 
 		val, ok = c.Get("bbb")
 		require.True(t, ok)
-		require.Equal(t, 200, val)
-
-		wasInCache = c.Set("aaa", 300)
-		require.True(t, wasInCache)
-
-		val, ok = c.Get("aaa")
-		require.True(t, ok)
-		require.Equal(t, 300, val)
+		require.Equal(t, "200", val)
 
 		val, ok = c.Get("ccc")
 		require.False(t, ok)
 		require.Nil(t, val)
-	})
 
+		wasInCache = c.Set("aaa", 300)
+		require.True(t, wasInCache)
+	})
+	// /*
+	//    Ожидаются следующие тесты:
+	//    - на логику выталкивания элементов из-за размера очереди
+	//    (например: n = 3, добавили 4 элемента - 1й из кэша вытолкнулся);
+	//    - на логику выталкивания давно используемых элементов
+	//    (например: n = 3, добавили 3 элемента, обратились несколько раз к разным элементам:
+	//    изменили значение, получили значение и пр. - добавили 4й элемент,
+	//    из первой тройки вытолкнется тот элемент, что был затронут наиболее давно).
+	// */
 	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+		c := NewCache(3)
+
+		c.Set("aaa", 600)
+		c.Set("bbb", 700)
+		c.Set("ccc", 800)
+		c.Set("ddd", 900)
+
+		_, ok := c.Get("aaa")
+		require.False(t, ok)
+
+		c.Clear()
+
+		c.Set("aaa", 600)
+		c.Set("bbb", 700)
+		c.Set("ccc", 800)
+
+		_, _ = c.Get("aaa")
+
+		c.Set("ddd", 900)
+		_, ok = c.Get("bbb")
+		require.False(t, ok)
 	})
 }
 
