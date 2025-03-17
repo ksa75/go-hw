@@ -21,15 +21,14 @@ func Run(tasks []Task, n, m int) error {
 	defer close(done)
 	defer close(taskPool)
 
-	var errTasksCount int32
-	var errFlag int32
+	var errTasksCount int64
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func(wg2 *sync.WaitGroup) {
 		defer wg2.Done()
 		for _, task := range tasks {
-			if errFlag > 0 {
+			if errTasksCount >= int64(m) {
 				// fmt.Println("заканчиваем передачу по ошибке")
 				for i := 1; i <= n; i++ {
 					done <- struct{}{}
@@ -44,7 +43,7 @@ func Run(tasks []Task, n, m int) error {
 		}
 	}(&wg)
 
-	worker := func(done chan struct{}, i int) {
+	worker := func(done chan struct{}) {
 		wg.Add(1)
 		go func(wg1 *sync.WaitGroup) {
 			defer wg1.Done()
@@ -58,18 +57,16 @@ func Run(tasks []Task, n, m int) error {
 					// fmt.Println("processed ", ok, i)
 					if errmsg := fn(); errmsg != nil {
 						// fmt.Println(errmsg)
-						if atomic.AddInt32(&errTasksCount, 1) == int32(m) {
-							atomic.AddInt32(&errFlag, 1)
-						}
+						atomic.AddInt64(&errTasksCount, 1)
 					}
 				}
 			}
 		}(&wg)
 	}
 
-	//обрабатываем очередь n воркерами
+	// обрабатываем очередь n воркерами
 	for i := 1; i <= n; i++ {
-		worker(done, i)
+		worker(done)
 	}
 
 	wg.Wait()
@@ -77,9 +74,8 @@ func Run(tasks []Task, n, m int) error {
 	// fmt.Printf("сигналов осталось %v\n", len(done))
 	// fmt.Printf("задач осталось %v\n", len(taskPool))
 
-	// fmt.Println(errFlag)
 	// fmt.Println(errTasksCount)
-	if errFlag >= 1 {
+	if errTasksCount >= int64(m) {
 		return fmt.Errorf("неправильное количество: %w", ErrErrorsLimitExceeded)
 	}
 	return nil

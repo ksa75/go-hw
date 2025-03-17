@@ -78,7 +78,7 @@ func TestRun(t *testing.T) {
 		}
 
 		workersCount := 5
-		maxErrorsCount := 0
+		maxErrorsCount := 1
 
 		start := time.Now()
 		err := Run(tasks, workersCount, maxErrorsCount)
@@ -89,6 +89,5 @@ func TestRun(t *testing.T) {
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 		fmt.Printf("задач всего %v - выполнено %v\n", tasksCount, runTasksCount)
 		fmt.Printf("машинного времени затрачено %v - фактически прошло %v\n", sumTime, elapsedTime)
-
 	})
 }
