@@ -28,7 +28,7 @@ func Run(tasks []Task, n, m int) error {
 	go func(wg2 *sync.WaitGroup) {
 		defer wg2.Done()
 		for _, task := range tasks {
-			if errTasksCount >= int64(m) {
+			if atomic.LoadInt64(&errTasksCount) >= int64(m) {
 				// fmt.Println("заканчиваем передачу по ошибке")
 				for i := 1; i <= n; i++ {
 					done <- struct{}{}
