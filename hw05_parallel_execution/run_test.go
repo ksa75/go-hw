@@ -15,7 +15,7 @@ import (
 func TestRun(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
-	t.Run("'максимум 0 ошибок', значит функция всегда будет возвращатьErrErrorsLimitExceeded", func(t *testing.T) {
+	t.Run("'максимум 0 ошибок' - значит функция всегда будет возвращать ErrErrorsLimitExceeded", func(t *testing.T) {
 		tasksCount := 8
 		tasks := make([]Task, 0, tasksCount)
 		//
