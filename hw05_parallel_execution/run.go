@@ -54,7 +54,7 @@ func Run(tasks []Task, n, m int) error {
 					return
 				case fn, ok := <-taskPool:
 					_ = ok
-					// fmt.Println("processed ", ok, i)
+					// fmt.Println("processed ", ok)
 					if errmsg := fn(); errmsg != nil {
 						// fmt.Println(errmsg)
 						atomic.AddInt64(&errTasksCount, 1)
