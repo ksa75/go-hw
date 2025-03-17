@@ -3,7 +3,8 @@ package hw05parallelexecution
 import (
 	"errors"
 	"fmt"
-	"time"
+	"sync"
+	"sync/atomic"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
@@ -12,67 +13,74 @@ type Task func() error
 
 // Run starts tasks in n goroutines and stops its work when receiving m errors from tasks.
 func Run(tasks []Task, n, m int) error {
-	done := make(chan struct{}, n)
-	fin := make(chan struct{}, len(tasks))
+	if m < 0 {
+		m = -m
+	}
+	done := make(chan struct{})
 	taskPool := make(chan Task)
-	waitSleepers := make(chan int, len(tasks))
+	defer close(done)
+	defer close(taskPool)
 
-	// var errTasksCount int32
+	var errTasksCount int32
+	var errFlag int32
 
-	// заполняем канал
-	go func(fin <-chan struct{}, taskPool chan Task) {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func(wg2 *sync.WaitGroup) {
+		defer wg2.Done()
 		for _, task := range tasks {
-			for {
-				select {
-				case <-fin:
-					return
-				case taskPool <- task:
+			if errFlag > 0 {
+				// fmt.Println("заканчиваем передачу по ошибке")
+				for i := 1; i <= n; i++ {
+					done <- struct{}{}
 				}
+				return
 			}
+			taskPool <- task
 		}
-	}(fin, taskPool)
+		// fmt.Println("заканчиваем передачу нормально")
+		for i := 1; i <= n; i++ {
+			done <- struct{}{}
+		}
+	}(&wg)
 
-	worker := func(done <-chan struct{}, taskPool chan Task, i int) bool {
-		var err bool
-		go func() {
+	worker := func(done chan struct{}, i int) {
+		wg.Add(1)
+		go func(wg1 *sync.WaitGroup) {
+			defer wg1.Done()
 			for {
 				select {
 				case <-done:
-					fmt.Println("worker: done")
+					// fmt.Println("worker: done")
 					return
 				case fn, ok := <-taskPool:
 					_ = ok
-					fmt.Println("processed ", fn(), ok, i)
-					// if i := fn(); i != nil {
-					// fmt.Println("error")
-					// if atomic.AddInt32(&errTasksCount, 1) == int32(m) {
-					// err = true
-					// close(taskPool)
-					// }
-					// }
-					waitSleepers <- i
+					// fmt.Println("processed ", ok, i)
+					if errmsg := fn(); errmsg != nil {
+						// fmt.Println(errmsg)
+						if atomic.AddInt32(&errTasksCount, 1) == int32(m) {
+							atomic.AddInt32(&errFlag, 1)
+						}
+					}
 				}
 			}
-		}()
-		return err
+		}(&wg)
 	}
 
-	//запускаем воркеры
+	//обрабатываем очередь n воркерами
 	for i := 1; i <= n; i++ {
-		_ = worker(done, taskPool, i)
+		worker(done, i)
 	}
-	//снимаем блокировку завершения блока select
-	time.Sleep(time.Millisecond * 100)
-	for i := 1; i <= len(tasks); i++ {
-		<-waitSleepers
-	}
-	//сигнализируем поставщику завершение работы
-	for i := 1; i <= len(tasks); i++ {
-		fin <- struct{}{}
-	}
-	//сигнализируем воркерам завершение работы
-	for i := 1; i <= n; i++ {
-		done <- struct{}{}
+
+	wg.Wait()
+
+	// fmt.Printf("сигналов осталось %v\n", len(done))
+	// fmt.Printf("задач осталось %v\n", len(taskPool))
+
+	// fmt.Println(errFlag)
+	// fmt.Println(errTasksCount)
+	if errFlag >= 1 {
+		return fmt.Errorf("неправильное количество: %w", ErrErrorsLimitExceeded)
 	}
 	return nil
 }
