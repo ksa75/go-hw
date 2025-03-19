@@ -23,13 +23,9 @@ func Run(tasks []Task, n, m int) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for range taskPool {
-				if fn, ok := <-taskPool; ok {
-					if errmsg := fn(); errmsg != nil {
-						atomic.AddInt64(&errTasksCount, 1)
-					}
-				} else {
-					return
+			for fn := range taskPool {
+				if errmsg := fn(); errmsg != nil {
+					atomic.AddInt64(&errTasksCount, 1)
 				}
 			}
 		}()
