@@ -16,10 +16,7 @@ func Run(tasks []Task, n, m int) error {
 	if m < 0 {
 		return fmt.Errorf("макс колво ошибок - ноль: %w", ErrErrorsLimitExceeded)
 	}
-	done := make(chan struct{})
 	taskPool := make(chan Task)
-	defer close(done)
-	defer close(taskPool)
 
 	var errTasksCount int64
 
@@ -29,52 +26,33 @@ func Run(tasks []Task, n, m int) error {
 		defer wg2.Done()
 		for _, task := range tasks {
 			if atomic.LoadInt64(&errTasksCount) >= int64(m) {
-				// fmt.Println("заканчиваем передачу по ошибке")
-				for i := 1; i <= n; i++ {
-					done <- struct{}{}
-				}
+				close(taskPool)
 				return
 			}
 			taskPool <- task
 		}
-		// fmt.Println("заканчиваем передачу нормально")
-		for i := 1; i <= n; i++ {
-			done <- struct{}{}
-		}
+		close(taskPool)
 	}(&wg)
 
-	worker := func(done chan struct{}) {
+	worker := func() {
 		wg.Add(1)
 		go func(wg1 *sync.WaitGroup) {
 			defer wg1.Done()
 			for {
-				select {
-				case <-done:
-					// fmt.Println("worker: done")
+				if fn, ok := <-taskPool; !ok {
 					return
-				case fn, ok := <-taskPool:
-					_ = ok
-					// fmt.Println("processed ", ok)
+				} else {
 					if errmsg := fn(); errmsg != nil {
-						// fmt.Println(errmsg)
 						atomic.AddInt64(&errTasksCount, 1)
 					}
 				}
 			}
 		}(&wg)
 	}
-
-	// обрабатываем очередь n воркерами
 	for i := 1; i <= n; i++ {
-		worker(done)
+		worker()
 	}
-
 	wg.Wait()
-
-	// fmt.Printf("сигналов осталось %v\n", len(done))
-	// fmt.Printf("задач осталось %v\n", len(taskPool))
-
-	// fmt.Println(errTasksCount)
 	if errTasksCount >= int64(m) {
 		return fmt.Errorf("неправильное количество: %w", ErrErrorsLimitExceeded)
 	}
