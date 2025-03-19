@@ -39,12 +39,12 @@ func Run(tasks []Task, n, m int) error {
 		go func(wg1 *sync.WaitGroup) {
 			defer wg1.Done()
 			for {
-				if fn, ok := <-taskPool; !ok {
-					return
-				} else {
+				if fn, ok := <-taskPool; ok {
 					if errmsg := fn(); errmsg != nil {
 						atomic.AddInt64(&errTasksCount, 1)
 					}
+				} else {
+					return
 				}
 			}
 		}(&wg)
