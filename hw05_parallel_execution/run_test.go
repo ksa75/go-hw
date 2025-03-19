@@ -121,7 +121,7 @@ func TestRun(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Truef(t, errors.Is(err, nil), "actual err - %v", err)
-		require.Equal(t, runTasksCount, int32(tasksCount), "not all tasks were completed")
+		require.Equal(t, int32(tasksCount), runTasksCount, "not all tasks were completed")
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 		fmt.Printf("задач всего %v - выполнено %v\n", tasksCount, runTasksCount)
 		fmt.Printf("машинного времени затрачено %v - фактически прошло %v\n", sumTime, elapsedTime)

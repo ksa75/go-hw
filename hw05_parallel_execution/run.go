@@ -16,29 +16,14 @@ func Run(tasks []Task, n, m int) error {
 	if m < 0 {
 		return fmt.Errorf("макс колво ошибок - ноль: %w", ErrErrorsLimitExceeded)
 	}
-	taskPool := make(chan Task)
-
 	var errTasksCount int64
-
+	taskPool := make(chan Task)
 	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func(wg2 *sync.WaitGroup) {
-		defer wg2.Done()
-		for _, task := range tasks {
-			if atomic.LoadInt64(&errTasksCount) >= int64(m) {
-				close(taskPool)
-				return
-			}
-			taskPool <- task
-		}
-		close(taskPool)
-	}(&wg)
-
 	worker := func() {
 		wg.Add(1)
-		go func(wg1 *sync.WaitGroup) {
-			defer wg1.Done()
-			for {
+		go func() {
+			defer wg.Done()
+			for range taskPool {
 				if fn, ok := <-taskPool; ok {
 					if errmsg := fn(); errmsg != nil {
 						atomic.AddInt64(&errTasksCount, 1)
@@ -47,11 +32,19 @@ func Run(tasks []Task, n, m int) error {
 					return
 				}
 			}
-		}(&wg)
+		}()
 	}
+
 	for i := 1; i <= n; i++ {
 		worker()
 	}
+	for _, task := range tasks {
+		if atomic.LoadInt64(&errTasksCount) >= int64(m) {
+			break
+		}
+		taskPool <- task
+	}
+	close(taskPool)
 	wg.Wait()
 	if errTasksCount >= int64(m) {
 		return fmt.Errorf("неправильное количество: %w", ErrErrorsLimitExceeded)
