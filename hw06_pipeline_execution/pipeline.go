@@ -23,6 +23,7 @@ func readCh(in In, done In) Out {
 		for {
 			select {
 			case <-done:
+				//nolint:revive
 				for range in {
 				} // Вычитываем из канала значение чтобы разблокировать писателя
 				return
