@@ -23,7 +23,8 @@ func readCh(in In, done In) Out {
 		for {
 			select {
 			case <-done:
-				<-in // Вычитываем из канала значение чтобы разблокировать писателя
+				for range in {
+				} // Вычитываем из канала значение чтобы разблокировать писателя
 				return
 			case data, ok := <-in:
 				if !ok {
