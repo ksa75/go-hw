@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/cheggaaa/pb/v3"
+	"github.com/cheggaaa/pb"
 )
 
 var (
@@ -15,7 +15,6 @@ var (
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
-
 	// Открываем исходный файл
 	fromFile, err := os.Open(fromPath)
 	if err != nil {
@@ -29,14 +28,14 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		// * программа может НЕ обрабатывать файлы, у которых неизвестна длина (например, /dev/urandom);
 		return fmt.Errorf("undefined src file length: %w", ErrUnsupportedFile)
 	}
-	fromFileLen := int64(fileInfo.Size())
+	fromFileLen := fileInfo.Size()
 
-	//* offset больше, чем размер файла - невалидная ситуация;
+	// * offset больше, чем размер файла - невалидная ситуация;
 	if offset > fromFileLen {
 		return fmt.Errorf("wrong offset: %w", ErrOffsetExceedsFileSize)
 	}
 
-	//* limit больше, чем размер файла - валидная ситуация, копируется исходный файл до его EOF;
+	// * limit больше, чем размер файла - валидная ситуация, копируется исходный файл до его EOF;
 	if limit > fromFileLen {
 		limit = fromFileLen
 	}
@@ -70,10 +69,10 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	for {
 		// Читаем из исходного файла
 		bytesRead, err := fromFile.Read(buffer)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			return fmt.Errorf("failed to read from source file: %w", err)
 		}
-		//????
+		// ????
 		if bytesRead == 0 {
 			break
 		}

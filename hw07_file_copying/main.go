@@ -30,16 +30,18 @@ func main() {
 
 	// Выполняем копирование
 	err := Copy(from, to, offset, limit)
-	if err != nil {
-		if errors.Is(err, ErrOffsetExceedsFileSize) {
-			log.Fatalf("Error: %v\n", ErrOffsetExceedsFileSize)
-			if errors.Is(err, ErrUnsupportedFile) {
-				log.Fatalf("Error: %v\n", ErrUnsupportedFile)
-			} else {
-				log.Fatalf("Error: %v\n", err)
-			}
-		}
-	} else {
+
+	if err == nil {
 		fmt.Println("File copied successfully!")
+		return
+	}
+
+	switch {
+	case errors.Is(err, ErrOffsetExceedsFileSize):
+		log.Fatalf("Error: %v\n", ErrOffsetExceedsFileSize)
+	case errors.Is(err, ErrUnsupportedFile):
+		log.Fatalf("Error: %v\n", ErrUnsupportedFile)
+	default:
+		log.Fatalf("Error: %v\n", err)
 	}
 }
