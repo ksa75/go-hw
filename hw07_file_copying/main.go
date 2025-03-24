@@ -1,7 +1,10 @@
 package main
 
 import (
+	"errors"
 	"flag"
+	"fmt"
+	"log"
 )
 
 var (
@@ -17,6 +20,26 @@ func init() {
 }
 
 func main() {
-	flag.Parse()
-	// Place your code here.
+	flag.Parse() // проанализировать аргументы
+	// теперь в from,to,offset,limit есть значения
+
+	// Проверка, что обязательные флаги указаны
+	if from == "" || to == "" {
+		log.Fatal("Both source and destination file paths must be provided")
+	}
+
+	// Выполняем копирование
+	err := Copy(from, to, offset, limit)
+	if err != nil {
+		if errors.Is(err, ErrOffsetExceedsFileSize) {
+			log.Fatalf("Error: %v\n", ErrOffsetExceedsFileSize)
+			if errors.Is(err, ErrUnsupportedFile) {
+				log.Fatalf("Error: %v\n", ErrUnsupportedFile)
+			} else {
+				log.Fatalf("Error: %v\n", err)
+			}
+		}
+	} else {
+		fmt.Println("File copied successfully!")
+	}
 }
