@@ -17,7 +17,7 @@ var (
 
 // Helper function to check if a byte is an invisible character.
 func nonCountable(b byte) bool {
-	return b == '\n' // || b == '\r' //|| b == '\t' //|| b == ' '
+	return b == '\r' // || b == '\r' //|| b == '\t' //|| b == ' '
 }
 
 // Function to fix the offset and limit for excluding invisible characters.
