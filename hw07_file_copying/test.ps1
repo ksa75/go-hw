@@ -25,7 +25,7 @@ diff (gc out.txt) (gc testdata/out_offset6000_limit1000.txt)
 ./go-cp.exe -from testdata/input.txt -to out.txt -offset 6717 -limit 100
 ./go-cp.exe -from testdata/input.txt -to out.txt -offset 6917 -limit 100
 ./go-cp.exe -from not_existing -to out.txt
-./go-cp.exe -from testdata/input.txt -to ?*.txt
+./go-cp.exe -from testdata/input.txt -to 1/1.txt
 
 rm -force go-cp.exe
 rm -force out.txt
