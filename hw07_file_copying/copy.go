@@ -15,52 +15,6 @@ var (
 	ErrFile                  = errors.New("problem with file specified")
 )
 
-// Helper function to check if a byte is an invisible character.
-func nonCountable(b byte) bool {
-	return b == '\r' // || b == '\r' //|| b == '\t' //|| b == ' '
-}
-
-// Function to fix the offset and limit for excluding invisible characters.
-func adjLen(src io.Reader, offset, limit int64) (int64, int64, error) {
-	var adjustedOffset, adjustedLimit int64
-	var readPos, readLimit int64
-
-	for i := int64(0); readPos <= offset; i++ {
-		var b [1]byte
-		_, err := src.Read(b[:])
-		if err != nil && err != io.EOF {
-			return 0, 0, err
-		}
-		if nonCountable(b[0]) {
-			continue
-		}
-		readPos++
-		adjustedOffset = i
-		if err == io.EOF {
-			break
-		}
-	}
-
-	for i := int64(0); readLimit <= limit; i++ {
-		var b [1]byte
-		_, err := src.Read(b[:])
-		if err != nil && err != io.EOF {
-			return 0, 0, err
-		}
-		if nonCountable(b[0]) {
-			continue
-		}
-		adjustedLimit = i
-		if err == io.EOF {
-			adjustedLimit++
-			break
-		}
-		readLimit++
-	}
-
-	return adjustedOffset, adjustedLimit, nil
-}
-
 func Copy(fromPath, toPath string, offset, limit int64) error {
 	// Открываем исходный файл
 	fromFile, err := os.Open(fromPath)
@@ -69,23 +23,24 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 	defer fromFile.Close()
 
-	// Получаем информацию о файле (размер)
-	fileInfo, err := fromFile.Stat()
-	if err != nil {
-		// программа может НЕ обрабатывать файлы, у которых неизвестна длина (например, /dev/urandom);
+	// Получаем информацию о файле
+	fileInfo, _ := fromFile.Stat()
+
+	// Проверяем, является ли файл обычным
+	if fileInfo.Mode()&os.ModeType == os.ModeNamedPipe || fileInfo.Mode()&os.ModeDevice != 0 {
+		// Если это именованный канал или устройство (например, /dev/urandom), длина может быть неизвестна
 		return fmt.Errorf("undefined src file length: %w", ErrUnsupportedFile)
 	}
+	// Проверяем доступность длины для обычных файлов
 	fromFileLen := fileInfo.Size()
+	if fromFileLen == -1 {
+		// программа может НЕ обрабатывать файлы, у которых неизвестна длина;
+		return fmt.Errorf("undefined src file length: %w", ErrUnsupportedFile)
+	}
 
 	// offset больше, чем размер файла - невалидная ситуация;
 	if offset > fromFileLen {
 		return fmt.Errorf("wrong offset: %w", ErrOffsetExceedsFileSize)
-	}
-
-	// считаются все кроме \n
-	offset, limit, err = adjLen(fromFile, offset, limit)
-	if err != nil {
-		return fmt.Errorf("error adjusting offset, limit: %w", err)
 	}
 
 	// Если limit не задан, копируем до конца файла

@@ -59,6 +59,7 @@ func TestCopyNegative(t *testing.T) {
 		err                    error
 	}
 	tests := []Test{
+		{"unsupported_srcFile", "/dev/urandom", "out.txt", 0, 0, ErrUnsupportedFile},
 		{"not_existing_src", "error_path", "out.txt", 0, 0, ErrFile},
 		{"dst_problem", "input.txt", "1/1.txt", 0, 0, ErrFile},
 		{"invalid_offset", "input.txt", "out.txt", 10000, 0, ErrOffsetExceedsFileSize},
