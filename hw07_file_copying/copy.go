@@ -79,7 +79,10 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	bar := pb.New(int(limit)).SetWidth(50)
 	bar.Start()
 
-	N := int(limit)
+	var N int64 = 1024
+	if limit < N {
+		N = limit
+	}
 	buffer := make([]byte, N)
 	var totalBytesCopied int64
 

@@ -22,7 +22,6 @@ func TestCopy(t *testing.T) {
 		{"out_offset100_limit1000", 100, 1000},
 		{"out_offset6000_limit1000", 6000, 1000},
 		{"out_offset6000_limit0", 6000, 0},
-		// {"out_offset6717_limit0", 6717, 0},
 	}
 
 	for _, test := range tests {
@@ -30,11 +29,6 @@ func TestCopy(t *testing.T) {
 			inputFileName := filepath.Join("testdata", "input.txt")
 			tmpFileName := filepath.Join("testdata", "out.txt")
 			goldenFileName := filepath.Join("testdata", test.Name+".txt")
-
-			// - `os.OpenFile`, `os.Create`, `os.FileMode`
-			// - `io.CopyN`
-			// - `os.CreateTemp`
-			// io.CopyN()
 
 			err := Copy(inputFileName, tmpFileName, test.Offset, test.Limit)
 			require.NoError(t, err)
