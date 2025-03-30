@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/cheggaaa/pb"
 )
@@ -16,6 +17,18 @@ var (
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
+	absFromPath, err := filepath.Abs(fromPath)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path of source file: %w", err)
+	}
+	absToPath, err := filepath.Abs(toPath)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path of target file: %w", err)
+	}
+	if absFromPath == absToPath {
+		return fmt.Errorf("source and target files are the same: %w", ErrFile)
+	}
+
 	// Открываем исходный файл
 	fromFile, err := os.Open(fromPath)
 	if err != nil {

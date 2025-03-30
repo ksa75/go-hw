@@ -60,6 +60,7 @@ func TestCopyNegative(t *testing.T) {
 	}
 	tests := []Test{
 		{"unsupported_srcFile", "/dev/urandom", "out.txt", 0, 0, ErrUnsupportedFile},
+		{"src_eq_dst", "testdata/input.txt", "input.txt", 0, 0, ErrFile},
 		{"not_existing_src", "error_path", "out.txt", 0, 0, ErrFile},
 		{"dst_problem", "testdata/input.txt", "1/1.txt", 0, 0, ErrFile},
 		{"invalid_offset", "testdata/input.txt", "out.txt", 10000, 0, ErrOffsetExceedsFileSize},
@@ -69,7 +70,6 @@ func TestCopyNegative(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			inputFileName := test.srcPath
 			tmpFileName := filepath.Join("testdata", test.dstPath)
-
 			err := Copy(inputFileName, tmpFileName, test.Offset, test.Limit)
 			require.Truef(t, errors.Is(err, test.err), "actual error %q", err)
 		})
