@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -8,8 +9,9 @@ import (
 )
 
 // RunCommand captures the output of running the go-envdir command.
-func RunCommand(envDir, command string, args []string) (string, error) {
+func RunCommand(envDir, command string, args ...string) (string, error) {
 	cmdArgs := append([]string{envDir, command}, args...)
+	fmt.Println(cmdArgs)
 	cmd := exec.Command("./go-envdir", cmdArgs...)
 	cmd.Env = append(os.Environ(), "ADDED=from original env")
 
@@ -20,10 +22,10 @@ func RunCommand(envDir, command string, args []string) (string, error) {
 
 func TestRunCmd(t *testing.T) {
 	envDir := "./testdata/env"
-	script := "./testdata/echo.sh"
+	command := "/bin/bash ./testdata/echo.sh"
 	args := []string{"arg1=1", "arg2=2"}
 
-	result, err := RunCommand(envDir, script, args)
+	result, err := RunCommand(envDir, command, args...)
 	if err != nil {
 		t.Fatalf("Failed to run go-envdir: %v", err)
 	}

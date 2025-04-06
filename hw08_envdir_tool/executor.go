@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,7 +10,6 @@ import (
 
 // RunCmd runs a command + arguments (cmd) with environment variables from env.
 func RunCmd(cmd []string, env Environment) (returnCode int) {
-
 	for key, value := range env {
 		if value.NeedRemove {
 			// If NeedRemove is true, unset the variable
@@ -34,16 +34,16 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 
 	// Run the command
 	err := cmdExec.Run()
+
 	if err != nil {
-		// If an error occurs, capture the exit code
-		if exitError, ok := err.(*exec.ExitError); ok {
-			return exitError.ExitCode()
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
+			fmt.Println("Command failed with exit code:", exitError.ExitCode())
 		} else {
-			fmt.Printf("Error executing command: %v\n", err)
-			return 1
+			fmt.Println("Unexpected error:", err)
 		}
 	}
 
-	// If successful, return 0 exit code
-	return 0
+	// Return the exit code of the command
+	return cmdExec.ProcessState.ExitCode()
 }

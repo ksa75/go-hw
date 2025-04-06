@@ -22,7 +22,7 @@ func ReadDir(dir string) (Environment, error) {
 
 	files, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read dir: %s, %v", dir, err)
+		return nil, fmt.Errorf("failed to read dir: %s, %w", dir, err)
 	}
 
 	for _, file := range files {
@@ -35,7 +35,7 @@ func ReadDir(dir string) (Environment, error) {
 
 		f, err := os.Open(fPath)
 		if err != nil {
-			return nil, fmt.Errorf("failed to open file: %s, %v", fPath, err)
+			return nil, fmt.Errorf("failed to open file: %s, %w", fPath, err)
 		}
 		defer f.Close()
 
@@ -56,7 +56,7 @@ func ReadDir(dir string) (Environment, error) {
 				env[file.Name()] = EnvValue{Value: value}
 			}
 		} else if err := scanner.Err(); err != nil {
-			return nil, fmt.Errorf("error reading file %s: %v", fPath, err)
+			return nil, fmt.Errorf("error reading file %s: %w", fPath, err)
 		}
 	}
 	return env, nil
