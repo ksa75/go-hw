@@ -8,7 +8,7 @@ import (
 )
 
 // RunCommand captures the output of running the go-envdir command.
-func RunCommand(envDir, command string, args ...string) (string, error) {
+func RunCommand(envDir, command string, args []string) (string, error) {
 	cmdArgs := append([]string{envDir, command}, args...)
 	cmd := exec.Command("./go-envdir", cmdArgs...)
 	cmd.Env = append(os.Environ(), "ADDED=from original env")
@@ -19,13 +19,11 @@ func RunCommand(envDir, command string, args ...string) (string, error) {
 }
 
 func TestRunCmd(t *testing.T) {
-	// Prepare test data
 	envDir := "./testdata/env"
 	script := "./testdata/echo.sh"
 	args := []string{"arg1=1", "arg2=2"}
 
-	// Run the command
-	result, err := RunCommand(envDir, "/bin/bash", script, args...)
+	result, err := RunCommand(envDir, script, args)
 	if err != nil {
 		t.Fatalf("Failed to run go-envdir: %v", err)
 	}
@@ -33,7 +31,7 @@ func TestRunCmd(t *testing.T) {
 	// Define the expected output
 	expected := `HELLO is (hello)
 BAR is (bar)
-FOO is (foo
+FOO is (   foo
 with new line)
 UNSET is ()
 ADDED is (from original env)

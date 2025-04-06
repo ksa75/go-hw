@@ -11,11 +11,9 @@ import (
 func RunCmd(cmd []string, env Environment) (returnCode int) {
 
 	for key, value := range env {
-		// fmt.Println("##############", key, value)
 		if value.NeedRemove {
 			// If NeedRemove is true, unset the variable
 			syscall.Unsetenv(key)
-			// fmt.Println("##############", key)
 		} else {
 			// Otherwise, set the environment variable
 			syscall.Setenv(key, value.Value)
