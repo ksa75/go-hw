@@ -4,44 +4,27 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
 	"syscall"
 )
 
 // RunCmd runs a command + arguments (cmd) with environment variables from env.
 func RunCmd(cmd []string, env Environment) (returnCode int) {
-	// Prepare environment variables
+
 	for key, value := range env {
+		// fmt.Println("##############", key, value)
 		if value.NeedRemove {
 			// If NeedRemove is true, unset the variable
-			if runtime.GOOS == "windows" {
-				// On Windows, use os.Unsetenv
-				os.Unsetenv(key)
-			} else {
-				// On Linux and other OSs, use syscall.Unsetenv
-				syscall.Unsetenv(key)
-			}
+			syscall.Unsetenv(key)
+			// fmt.Println("##############", key)
 		} else {
 			// Otherwise, set the environment variable
-			if runtime.GOOS == "windows" {
-				// On Windows, use os.Setenv
-				os.Setenv(key, value.Value)
-			} else {
-				// On Linux and other OSs, use syscall.Setenv
-				syscall.Setenv(key, value.Value)
-			}
+			syscall.Setenv(key, value.Value)
 		}
 	}
 
-	// Prepare the command
+	// Prepare command and arguments
 	command := cmd[0]
 	args := cmd[1:]
-
-	// If on Windows, prepend cmd.exe /C to run the command in a shell
-	if runtime.GOOS == "windows" {
-		command = "cmd.exe"
-		args = append([]string{"/C"}, cmd...)
-	}
 
 	// Create a new command with the given arguments
 	cmdExec := exec.Command(command, args...)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime"
 )
 
 func main() {
@@ -17,7 +16,7 @@ func main() {
 	// Get the directory containing the environment files and the command to run
 	envDir := os.Args[1]
 	cmd := os.Args[2:]
-	fmt.Println(runtime.GOOS)
+	// fmt.Println(runtime.GOOS)
 
 	// Read environment variables from the specified directory
 	env, err := ReadDir(envDir)

@@ -26,32 +26,38 @@ func ReadDir(dir string) (Environment, error) {
 	}
 
 	for _, file := range files {
-		if file.IsDir() {
+		// имя `S` не должно содержать `=`;
+		if file.IsDir() || strings.Contains(file.Name(), "=") {
 			continue
 		}
 
 		fPath := dir + "/" + file.Name()
+
 		f, err := os.Open(fPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open file: %s, %v", fPath, err)
 		}
 		defer f.Close()
 
-		// Read the first line from the file
+		// если файл полностью пустой (длина - 0 байт), то `envdir` удаляет переменную окружения с именем `S`.
+		if stat, _ := f.Stat(); stat.Size() == 0 {
+			env[file.Name()] = EnvValue{NeedRemove: true}
+		}
 		scanner := bufio.NewScanner(f)
 		if scanner.Scan() {
-			value := strings.TrimSpace(scanner.Text())
+			// пробелы и табуляция в конце `T` удаляются;
+			value := strings.TrimRight(scanner.Text(), " ")
+			value = strings.TrimRight(value, "\t")
+			// терминальные нули (`0x00`) заменяются на перевод строки (`\n`);
+			value = strings.ReplaceAll(value, "\x00", "\n")
 			if value == "" {
-				// If the file is empty, mark for removal
 				env[file.Name()] = EnvValue{NeedRemove: true}
 			} else {
-				// Otherwise, store the value
 				env[file.Name()] = EnvValue{Value: value}
 			}
 		} else if err := scanner.Err(); err != nil {
 			return nil, fmt.Errorf("error reading file %s: %v", fPath, err)
 		}
 	}
-
 	return env, nil
 }
