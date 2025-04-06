@@ -12,7 +12,7 @@ func TestRunCmd(t *testing.T) {
 	defer os.Remove("go-envdir")
 
 	envDir := "./testdata/env"
-	command := "/bin/bash ./testdata/echo.sh"
+	command := "./testdata/echo.sh"
 	args := []string{"arg1=1", "arg2=2"}
 	cmdArgs := append([]string{envDir, command}, args...)
 
