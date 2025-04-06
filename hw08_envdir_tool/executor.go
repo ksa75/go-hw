@@ -34,7 +34,6 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 
 	// Run the command
 	err := cmdExec.Run()
-
 	if err != nil {
 		var exitError *exec.ExitError
 		if errors.As(err, &exitError) {
