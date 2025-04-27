@@ -60,10 +60,10 @@ func TestValidate(t *testing.T) {
 			in: User{
 				ID:     "12345678-1234-1234-1234-123456789012",
 				Name:   "Alice",
-				Age:    17,                // min:18
-				Email:  "invalid_email",   // bad regexp
-				Role:   "user",            // not in admin,stuff
-				Phones: []string{"12345"}, // len!=11
+				Age:    17,
+				Email:  "invalid_email",
+				Role:   "user",
+				Phones: []string{"12345"},
 			},
 			expectedErr: ValidationErrors{
 				{Field: "Age"},
@@ -111,45 +111,75 @@ func TestValidate(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case %d: %s", i, tt.name), func(t *testing.T) {
-			tt := tt
 			t.Parallel()
 
 			err := Validate(tt.in)
 
-			// Сравниваем наличие ошибки
-			if tt.expectedErr == nil && err != nil {
-				t.Errorf("unexpected error: %v", err)
-			}
-			if tt.expectedErr != nil && err == nil {
-				t.Errorf("expected error but got nil")
-			}
-
-			// Если обе ошибки не nil — сравниваем содержимое
-			if tt.expectedErr != nil && err != nil {
-				switch expected := tt.expectedErr.(type) {
-				case ValidationErrors:
-					actual, ok := err.(ValidationErrors)
-					if !ok {
-						t.Errorf("expected ValidationErrors type, got: %T", err)
-					} else {
-						if len(expected) != len(actual) {
-							t.Errorf("expected %d validation errors, got %d", len(expected), len(actual))
-						} else {
-							// По полям сравнение
-							for idx := range expected {
-								if expected[idx].Field != actual[idx].Field {
-									t.Errorf("expected field error '%s', got '%s'", expected[idx].Field, actual[idx].Field)
-								}
-							}
-						}
-					}
-				default:
-					if !strings.Contains(err.Error(), tt.expectedErr.Error()) {
-						t.Errorf("expected error containing %q, got %q", tt.expectedErr.Error(), err.Error())
-					}
-				}
-			}
-			_ = tt
+			checkErrors(t, err, tt.expectedErr)
 		})
+	}
+}
+
+func checkErrors(t *testing.T, actualErr, expectedErr error) {
+	t.Helper()
+
+	if expectedErr == nil && actualErr != nil {
+		t.Errorf("unexpected error: %v", actualErr)
+		return
+	}
+	if expectedErr != nil && actualErr == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+	if expectedErr == nil && actualErr == nil {
+		// оба nil - всё хорошо
+		return
+	}
+
+	if isValidationErrors(expectedErr) {
+		checkValidationErrors(t, actualErr, expectedErr)
+		return
+	}
+
+	checkSimpleErrors(t, actualErr, expectedErr)
+}
+
+func isValidationErrors(err error) bool {
+	var ve ValidationErrors
+	return errors.As(err, &ve)
+}
+
+func checkValidationErrors(t *testing.T, actualErr, expectedErr error) {
+	t.Helper()
+
+	var expected ValidationErrors
+	var actual ValidationErrors
+
+	if !errors.As(expectedErr, &expected) {
+		t.Errorf("expected error should be ValidationErrors")
+		return
+	}
+	if !errors.As(actualErr, &actual) {
+		t.Errorf("actual error should be ValidationErrors")
+		return
+	}
+
+	if len(expected) != len(actual) {
+		t.Errorf("expected %d validation errors, got %d", len(expected), len(actual))
+		return
+	}
+
+	for idx := range expected {
+		if expected[idx].Field != actual[idx].Field {
+			t.Errorf("expected error in field %q, got %q", expected[idx].Field, actual[idx].Field)
+		}
+	}
+}
+
+func checkSimpleErrors(t *testing.T, actualErr, expectedErr error) {
+	t.Helper()
+
+	if !strings.Contains(actualErr.Error(), expectedErr.Error()) {
+		t.Errorf("expected error containing %q, got %q", expectedErr.Error(), actualErr.Error())
 	}
 }

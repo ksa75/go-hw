@@ -24,7 +24,7 @@ func (v ValidationErrors) Error() string {
 	return sb.String()
 }
 
-func Validate(v any) error {
+func Validate(v interface{}) error {
 	val := reflect.ValueOf(v)
 
 	if val.Kind() != reflect.Struct {
@@ -34,7 +34,7 @@ func Validate(v any) error {
 	var validationErrors ValidationErrors
 
 	typ := val.Type()
-	for i := range val.NumField() {
+	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
 		fieldType := typ.Field(i)
 		validateTag := fieldType.Tag.Get("validate")
@@ -62,9 +62,9 @@ func Validate(v any) error {
 		// }
 
 		rules := strings.Split(validateTag, "|")
+		kind := field.Kind()
 
-		switch field.Kind() {
-		case reflect.String:
+		if kind == reflect.String {
 			for _, rule := range rules {
 				if err := validateString(field.String(), rule); err != nil {
 					validationErrors = append(validationErrors, ValidationError{
@@ -73,8 +73,10 @@ func Validate(v any) error {
 					})
 				}
 			}
+			continue
+		}
 
-		case reflect.Int:
+		if kind == reflect.Int {
 			for _, rule := range rules {
 				if err := validateInt(int(field.Int()), rule); err != nil {
 					validationErrors = append(validationErrors, ValidationError{
@@ -83,32 +85,12 @@ func Validate(v any) error {
 					})
 				}
 			}
+			continue
+		}
 
-		case reflect.Slice:
-			switch field.Type().Elem().Kind() {
-			case reflect.String:
-				for idx := 0; idx < field.Len(); idx++ {
-					for _, rule := range rules {
-						if err := validateString(field.Index(idx).String(), rule); err != nil {
-							validationErrors = append(validationErrors, ValidationError{
-								Field: fmt.Sprintf("%s[%d]", fieldType.Name, idx),
-								Err:   err,
-							})
-						}
-					}
-				}
-			case reflect.Int:
-				for idx := 0; idx < field.Len(); idx++ {
-					for _, rule := range rules {
-						if err := validateInt(int(field.Index(idx).Int()), rule); err != nil {
-							validationErrors = append(validationErrors, ValidationError{
-								Field: fmt.Sprintf("%s[%d]", fieldType.Name, idx),
-								Err:   err,
-							})
-						}
-					}
-				}
-			}
+		if kind == reflect.Slice {
+			validateSliceField(field, fieldType, rules, &validationErrors)
+			continue
 		}
 	}
 
@@ -182,4 +164,36 @@ func validateInt(value int, rule string) error {
 		}
 	}
 	return nil
+}
+
+func validateSliceField(fld reflect.Value, fldType reflect.StructField, rules []string, valErrors *ValidationErrors) {
+	elemKind := fld.Type().Elem().Kind()
+
+	if elemKind == reflect.String {
+		for idx := 0; idx < fld.Len(); idx++ {
+			for _, rule := range rules {
+				if err := validateString(fld.Index(idx).String(), rule); err != nil {
+					*valErrors = append(*valErrors, ValidationError{
+						Field: fmt.Sprintf("%s[%d]", fldType.Name, idx),
+						Err:   err,
+					})
+				}
+			}
+		}
+		return
+	}
+
+	if elemKind == reflect.Int {
+		for idx := 0; idx < fld.Len(); idx++ {
+			for _, rule := range rules {
+				if err := validateInt(int(fld.Index(idx).Int()), rule); err != nil {
+					*valErrors = append(*valErrors, ValidationError{
+						Field: fmt.Sprintf("%s[%d]", fldType.Name, idx),
+						Err:   err,
+					})
+				}
+			}
+		}
+		return
+	}
 }
