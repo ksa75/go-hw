@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -24,7 +25,7 @@ func (v ValidationErrors) Error() string {
 	return sb.String()
 }
 
-func Validate(v interface{}) error {
+func Validate(v any) error {
 	val := reflect.ValueOf(v)
 
 	if val.Kind() != reflect.Struct {
@@ -34,7 +35,7 @@ func Validate(v interface{}) error {
 	var validationErrors ValidationErrors
 
 	typ := val.Type()
-	for i := 0; i < val.NumField(); i++ {
+	for i := range val.NumField() {
 		field := val.Field(i)
 		fieldType := typ.Field(i)
 		validateTag := fieldType.Tag.Get("validate")
@@ -120,13 +121,7 @@ func validateString(value string, rule string) error {
 
 	case strings.HasPrefix(rule, "in:"):
 		values := strings.Split(strings.TrimPrefix(rule, "in:"), ",")
-		found := false
-		for _, v := range values {
-			if value == v {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(values, value)
 		if !found {
 			return fmt.Errorf("must be one of [%s]", strings.Join(values, ", "))
 		}
@@ -170,7 +165,7 @@ func validateSliceField(fld reflect.Value, fldType reflect.StructField, rules []
 	elemKind := fld.Type().Elem().Kind()
 
 	if elemKind == reflect.String {
-		for idx := 0; idx < fld.Len(); idx++ {
+		for idx := range fld.Len() {
 			for _, rule := range rules {
 				if err := validateString(fld.Index(idx).String(), rule); err != nil {
 					*valErrors = append(*valErrors, ValidationError{
@@ -184,7 +179,7 @@ func validateSliceField(fld reflect.Value, fldType reflect.StructField, rules []
 	}
 
 	if elemKind == reflect.Int {
-		for idx := 0; idx < fld.Len(); idx++ {
+		for idx := range fld.Len() {
 			for _, rule := range rules {
 				if err := validateInt(int(fld.Index(idx).Int()), rule); err != nil {
 					*valErrors = append(*valErrors, ValidationError{
