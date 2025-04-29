@@ -25,6 +25,18 @@ type (
 		Version string `validate:"len:5"`
 	}
 
+	SliceInt struct {
+		Val []int `validate:"min:1|max:10"`
+	}
+
+	SliceString struct {
+		Val []string `validate:"regexp:[abc"`
+	}
+
+	SomeString struct {
+		Val string `validate:"regexp:[abc"`
+	}
+
 	Token struct {
 		Header    []byte
 		Payload   []byte
@@ -72,6 +84,38 @@ func TestValidate(t *testing.T) {
 				{Field: "Phones[0]"},
 			},
 		},
+		{
+			name: "good slice of ints",
+			in: SliceInt{
+				Val: []int{1, 2, 3},
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "bad slice of ints",
+			in: SliceInt{
+				Val: []int{1, 2, 30},
+			},
+			expectedErr: ValidationErrors{
+				{Field: "Val[2]"},
+			},
+		},
+
+		{
+			name: "slice regexp compile error",
+			in: SliceString{
+				Val: []string{"неважно что", "неважно как"},
+			},
+			expectedErr: errors.New("invalid regexp"),
+		},
+		{
+			name: "string regexp compile error",
+			in: SomeString{
+				Val: "неважно что",
+			},
+			expectedErr: errors.New("invalid regexp"),
+		},
+
 		{
 			name: "valid app",
 			in: App{
@@ -141,7 +185,10 @@ func checkErrors(t *testing.T, actualErr, expectedErr error) {
 		return
 	}
 
-	checkSimpleErrors(t, actualErr, expectedErr)
+	fmt.Println()
+	fmt.Println("!!!!   Program Error: ", actualErr)
+	fmt.Println()
+	checkProgramErrors(t, actualErr, expectedErr)
 }
 
 func isValidationErrors(err error) bool {
@@ -176,7 +223,7 @@ func checkValidationErrors(t *testing.T, actualErr, expectedErr error) {
 	}
 }
 
-func checkSimpleErrors(t *testing.T, actualErr, expectedErr error) {
+func checkProgramErrors(t *testing.T, actualErr, expectedErr error) {
 	t.Helper()
 
 	if !strings.Contains(actualErr.Error(), expectedErr.Error()) {

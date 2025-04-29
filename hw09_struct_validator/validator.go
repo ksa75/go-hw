@@ -44,24 +44,6 @@ func Validate(v any) error {
 			continue
 		}
 
-		// if validateTag == "nested" {
-		// 	if field.Kind() == reflect.Struct {
-		// 		if err := Validate(field.Interface()); err != nil {
-		// 			if verrs, ok := err.(ValidationErrors); ok {
-		// 				for _, verr := range verrs {
-		// 					validationErrors = append(validationErrors, ValidationError{
-		// 						Field: fieldType.Name + "." + verr.Field,
-		// 						Err:   verr.Err,
-		// 					})
-		// 				}
-		// 			} else {
-		// 				return err
-		// 			}
-		// 		}
-		// 	}
-		// 	continue
-		// }
-
 		rules := strings.Split(validateTag, "|")
 		kind := field.Kind()
 
@@ -94,7 +76,9 @@ func Validate(v any) error {
 			continue
 		}
 	}
-
+	if isRegexError(validationErrors) {
+		return errors.New("invalid regexp")
+	}
 	if len(validationErrors) > 0 {
 		return validationErrors
 	}
@@ -191,4 +175,8 @@ func validateSliceField(fld reflect.Value, fldType reflect.StructField, rules []
 		}
 		return
 	}
+}
+
+func isRegexError(actualErr error) bool {
+	return strings.Contains(actualErr.Error(), "invalid regexp")
 }
