@@ -82,6 +82,9 @@ func Validate(v any) error {
 	if isIntError(validationErrors) {
 		return errors.New("invalid int criteria")
 	}
+	if isStringError(validationErrors) {
+		return errors.New("invalid string criteria")
+	}
 	if len(validationErrors) > 0 {
 		return validationErrors
 	}
@@ -91,7 +94,11 @@ func Validate(v any) error {
 func validateString(value string, rule string) error {
 	switch {
 	case strings.HasPrefix(rule, "len:"):
-		expectedLen, _ := strconv.Atoi(strings.TrimPrefix(rule, "len:"))
+		expectedLen, ok := strconv.Atoi(strings.TrimPrefix(rule, "len:"))
+		if ok != nil {
+			return fmt.Errorf("invalid string criteria")
+		}
+
 		if len(value) != expectedLen {
 			return fmt.Errorf("length must be %d", expectedLen)
 		}
@@ -195,4 +202,8 @@ func isRegexError(actualErr error) bool {
 
 func isIntError(actualErr error) bool {
 	return strings.Contains(actualErr.Error(), "invalid int criteria")
+}
+
+func isStringError(actualErr error) bool {
+	return strings.Contains(actualErr.Error(), "invalid string criteria")
 }
