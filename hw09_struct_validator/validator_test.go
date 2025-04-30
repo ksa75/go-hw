@@ -12,7 +12,7 @@ type UserRole string
 
 type (
 	User struct {
-		ID     string `json:"id" validate:"len:36"`
+		ID     string `json:"id" validate:"len:32"`
 		Name   string
 		Age    int             `validate:"min:18|max:50"`
 		Email  string          `validate:"regexp:^\\w+@\\w+\\.\\w+$"`
@@ -58,7 +58,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "valid user",
 			in: User{
-				ID:     "12345678-1234-1234-1234-123456789012",
+				ID:     "12345678-1234-1234-1234-12345678",
 				Name:   "John",
 				Age:    30,
 				Email:  "john@example.com",
@@ -70,7 +70,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "invalid user (age, email, role, phone length)",
 			in: User{
-				ID:     "12345678-1234-1234-1234-123456789012",
+				ID:     "12345678-1234-1234-1234-123456789",
 				Name:   "Alice",
 				Age:    17,
 				Email:  "invalid_email",
@@ -78,6 +78,7 @@ func TestValidate(t *testing.T) {
 				Phones: []string{"12345"},
 			},
 			expectedErr: ValidationErrors{
+				{Field: "ID"},
 				{Field: "Age"},
 				{Field: "Email"},
 				{Field: "Role"},
