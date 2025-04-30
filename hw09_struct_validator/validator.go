@@ -79,6 +79,9 @@ func Validate(v any) error {
 	if isRegexError(validationErrors) {
 		return errors.New("invalid regexp")
 	}
+	if isIntError(validationErrors) {
+		return errors.New("invalid int criteria")
+	}
 	if len(validationErrors) > 0 {
 		return validationErrors
 	}
@@ -116,13 +119,19 @@ func validateString(value string, rule string) error {
 func validateInt(value int, rule string) error {
 	switch {
 	case strings.HasPrefix(rule, "min:"):
-		minValue, _ := strconv.Atoi(strings.TrimPrefix(rule, "min:"))
+		minValue, ok := strconv.Atoi(strings.TrimPrefix(rule, "min:"))
+		if ok != nil {
+			return fmt.Errorf("invalid int criteria")
+		}
 		if value < minValue {
 			return fmt.Errorf("must be >= %d", minValue)
 		}
 
 	case strings.HasPrefix(rule, "max:"):
-		maxValue, _ := strconv.Atoi(strings.TrimPrefix(rule, "max:"))
+		maxValue, ok := strconv.Atoi(strings.TrimPrefix(rule, "max:"))
+		if ok != nil {
+			return fmt.Errorf("invalid int criteria")
+		}
 		if value > maxValue {
 			return fmt.Errorf("must be <= %d", maxValue)
 		}
@@ -132,7 +141,10 @@ func validateInt(value int, rule string) error {
 		values := strings.Split(raw, ",")
 		found := false
 		for _, v := range values {
-			intV, _ := strconv.Atoi(v)
+			intV, ok := strconv.Atoi(v)
+			if ok != nil {
+				return fmt.Errorf("invalid int criteria")
+			}
 			if value == intV {
 				found = true
 				break
@@ -179,4 +191,8 @@ func validateSliceField(fld reflect.Value, fldType reflect.StructField, rules []
 
 func isRegexError(actualErr error) bool {
 	return strings.Contains(actualErr.Error(), "invalid regexp")
+}
+
+func isIntError(actualErr error) bool {
+	return strings.Contains(actualErr.Error(), "invalid int criteria")
 }
