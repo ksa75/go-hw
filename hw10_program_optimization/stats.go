@@ -15,7 +15,7 @@ type DomainStat map[string]int
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	domain = "." + strings.ToLower(domain) // Precompute and lowercase once
 
-	result := make(DomainStat, 1000)
+	result := make(DomainStat)
 	decoder := json.NewDecoder(r)
 
 	var user User
@@ -25,7 +25,14 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 		}
 
 		email := strings.ToLower(user.Email)
-		domainPart := email[strings.LastIndexByte(email, '@')+1:]
+		at := strings.LastIndexByte(email, '@')
+		if at == -1 {
+			continue // Skip invalid email addresses
+		}
+		if at == len(email)-1 {
+			continue // Skip emails without domain part
+		}
+		domainPart := email[at+1:]
 
 		if strings.HasSuffix(domainPart, domain) {
 			result[domainPart]++
