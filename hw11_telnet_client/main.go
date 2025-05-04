@@ -63,7 +63,6 @@ func main() {
 	case <-sigCh:
 		fmt.Fprintln(os.Stderr, "\nReceived SIGINT, exiting.")
 	case <-done:
-		// already logged
 	}
 
 	client.Close()
