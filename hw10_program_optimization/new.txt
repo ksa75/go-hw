@@ -1,0 +1,8 @@
+goos: windows
+goarch: amd64
+pkg: github.com/ksa75/go-hw/hw10_program_optimization
+cpu: Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz
+BenchmarkGetDomainStat
+BenchmarkGetDomainStat-8   	1000000000	         0.3355 ns/op
+PASS
+ok  	github.com/ksa75/go-hw/hw10_program_optimization	6.579s
