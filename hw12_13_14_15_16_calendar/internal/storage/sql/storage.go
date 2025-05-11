@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 
-	"github.com/OtusGolang/github.com/ksa75/go-hw/hw12_13_14_15_16_calendar/internal/storage"
+	"github.com/ksa75/go-hw/hw12_13_14_15_16_calendar/internal/storage"
 )
 
 var _ storage.BaseStorage = (*Storage)(nil)
