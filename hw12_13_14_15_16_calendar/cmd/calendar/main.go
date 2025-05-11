@@ -82,7 +82,7 @@ func mainImpl() error {
 		return fmt.Errorf("cannot read config: %v", err)
 	}
 
-	r := new(psql.Repo)
+	r := new(sql.Storage)
 	if err := r.Connect(ctx, c.PSQL.DSN); err != nil {
 		return fmt.Errorf("cannot connect to psql: %v", err)
 	}
