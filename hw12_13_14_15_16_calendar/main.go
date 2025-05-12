@@ -3,25 +3,27 @@ package main
 import (
 	"context"
 	"flag"
-	// "os"
-	// "os/signal"
-	// "syscall"
+	"os"
+	"io"
+	"os/signal"
+	"syscall"
 	// "time"
 	"fmt"
 	"log"
 	
 
-	// "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	// "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	// internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	// memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
 
+	// "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
+	// memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	// "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
+	internalhttp "mycalendar/internal/server/http"
 	"mycalendar/internal/app"
     "mycalendar/internal/config"
 	"mycalendar/internal/storage/sql"
 )
 
 var configFile string
+type dummyApp struct{}
 
 func init() {
 	flag.StringVar(&configFile, "config", "configs/config.yaml", "Path to configuration file")
@@ -94,15 +96,36 @@ func mainImpl() error {
 	if err := r.Migrate(ctx, c.PSQL.Migration); err != nil {
 		return fmt.Errorf("cannot migrate: %v", err)
 	}
-
-	a, err := app.New(r)
+////////////////////////
+	calendar, err := app.New(r)
 	if err != nil {
 		return fmt.Errorf("cannot create app: %v", err)
 	}
 
-	if err := a.Run(ctx); err != nil {
+	if err := calendar.Run(ctx); err != nil {
 		return fmt.Errorf("cannot run app: %v", err)
 	}
+
+////////////////////////
+	// Открываем файл для логирования
+	logFile, err := os.OpenFile("access.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("cannot open log file: %v", err)
+	}
+	defer logFile.Close()
+
+	// Лог в stdout и в файл
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+	logger := log.New(multiWriter, "", 0)
+
+	srv := internalhttp.NewServer(logger, calendar, "0.0.0.0", "8080")
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	if err := srv.Start(ctx); err != nil {
+		logger.Printf("Server exited with error: %v", err)
+	}	
 
 	return nil
 }

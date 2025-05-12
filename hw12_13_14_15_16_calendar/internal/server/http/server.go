@@ -2,30 +2,62 @@ package internalhttp
 
 import (
 	"context"
+	// "fmt"
+	"net"
+	"net/http"
 )
 
-type Server struct { // TODO
+type Server struct {
+	server *http.Server
+	logger Logger
+	app    Application
 }
 
-type Logger interface { // TODO
+type Logger interface {
+	Printf(format string, v ...any)
 }
 
-type Application interface { // TODO
+type Application interface {
+	// Заглушка для будущей логики
 }
 
-func NewServer(logger Logger, app Application) *Server {
-	return &Server{}
+func NewServer(logger Logger, app Application, host string, port string) *Server {
+	mux := http.NewServeMux()
+
+	// "/" и "/hello" возвращают одно и то же
+	helloHandler := func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello, world!"))
+	}
+
+	mux.HandleFunc("/", helloHandler)
+	mux.HandleFunc("/hello", helloHandler)
+
+
+	handler := loggingMiddleware(logger)(mux)
+
+	return &Server{
+		logger: logger,
+		app:    app,
+		server: &http.Server{
+			Addr:    net.JoinHostPort(host, port),
+			Handler: handler,
+		},
+	}
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	// TODO
+	go func() {
+		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			s.logger.Printf("HTTP server ListenAndServe: %v", err)
+		}
+	}()
+	s.logger.Printf("Server started at %s", s.server.Addr)
+
 	<-ctx.Done()
-	return nil
+	return s.Stop(context.Background())
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	// TODO
-	return nil
+	s.logger.Printf("Server stopping...")
+	return s.server.Shutdown(ctx)
 }
-
-// TODO
