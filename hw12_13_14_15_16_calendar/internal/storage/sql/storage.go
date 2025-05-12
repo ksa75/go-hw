@@ -11,7 +11,7 @@ import (
 	"github.com/ksa75/go-hw/hw12_13_14_15_16_calendar/internal/storage"
 )
 
-var _ storage.BaseStorage = (*Storage)(nil)
+var _ storage.BaseStorage = (*Storage)(nil) // interface assertion at compile time
 
 type Storage struct {
 	db *sql.DB
