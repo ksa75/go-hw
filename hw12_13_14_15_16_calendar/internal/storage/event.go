@@ -1,5 +1,10 @@
 package storage
 
+import (
+	"context"
+	"time"
+)
+
 type EventsStorage interface {
 	GetEvents(ctx context.Context) ([]Event, error)
 }
@@ -13,11 +18,11 @@ type BaseStorage interface {
 
 
 type Event struct {
-	ID    string
 	UserID    string
 	Title string
 	Description string
 	StartDateTime time.Time
 	Duration string
 	NoticeBefore  string
+	CreatedAt time.Time
 }

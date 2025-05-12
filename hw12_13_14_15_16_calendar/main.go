@@ -3,29 +3,28 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
+	// "os"
+	// "os/signal"
+	// "syscall"
+	// "time"
+	"fmt"
+	"log"
+	
 
 	// "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
 	// "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
 	// internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
 	// memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
 
-////////////////////////////////
-	// "github.com/OtusGolang/webinars_practical_part/25-sql/internal/app"
-	"github.com/ksa75/go-hw/hw12_13_14_15_16_calendar/internal/app"
-	// "github.com/OtusGolang/webinars_practical_part/25-sql/internal/config"
-    "github.com/ksa75/go-hw/hw12_13_14_15_16_calendar/internal/config"
-	"github.com/ksa75/go-hw/hw12_13_14_15_16_calendar/internal/storage/sql"
-	// "github.com/OtusGolang/webinars_practical_part/25-sql/internal/repository/psql"
+	"mycalendar/internal/app"
+    "mycalendar/internal/config"
+	"mycalendar/internal/storage/sql"
 )
 
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "configs/config.yaml", "Path to configuration file")
 }
 
 func main() {
@@ -82,7 +81,7 @@ func mainImpl() error {
 		return fmt.Errorf("cannot read config: %v", err)
 	}
 
-	r := new(sql.Storage)
+	r := new(sqlstorage.Storage)
 	if err := r.Connect(ctx, c.PSQL.DSN); err != nil {
 		return fmt.Errorf("cannot connect to psql: %v", err)
 	}

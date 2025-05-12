@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 
-	"github.com/ksa75/go-hw/hw12_13_14_15_16_calendar/internal/storage"
+	"mycalendar/internal/storage"
 )
 
 var _ storage.BaseStorage = (*Storage)(nil) // interface assertion at compile time
@@ -21,7 +21,7 @@ func New() *Storage {
 	return &Storage{}
 }
 
-func (s *Storage) Connect(ctx context.Context, dsn string) error {
+func (s *Storage) Connect(ctx context.Context, dsn string) (err error) {
 	s.db, err = sql.Open("pgx", dsn)
 	if err != nil {
 		return fmt.Errorf("cannot open pgx driver: %w", err)
@@ -30,7 +30,7 @@ func (s *Storage) Connect(ctx context.Context, dsn string) error {
 	return s.db.PingContext(ctx)
 }
 
-func (s *Storage) Close(ctx context.Context) error {
+func (s *Storage) Close() error {
 	return s.db.Close()
 }
 
@@ -51,9 +51,9 @@ func (s *Storage) Migrate(ctx context.Context, migrate string) (err error) {
 	return nil
 }
 
-func (r *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
+func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, title, start_date_time, duration, description, user_id, notice_before, created_at FROM Events
+		SELECT user_id, title, description, start_date_time, duration, notice_before, created_at FROM Events
 	`)
 	if err != nil {
 		return nil, fmt.Errorf("cannot select: %w", err)
@@ -66,15 +66,13 @@ func (r *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 		var e storage.Event
 
 		if err := rows.Scan(
-			&b.ID,
-			&b.UserID,
-			&b.Title,
-			&b.Description,
-			&b.StartDateTime,
-			&b.Duration,
-			&b.UserID,
-			&b.NoticeBefore,
-			&b.CreatedAt,
+			&e.UserID,
+			&e.Title,
+			&e.Description,
+			&e.StartDateTime,
+			&e.Duration,
+			&e.NoticeBefore,
+			&e.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("cannot scan: %w", err)
 		}

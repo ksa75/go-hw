@@ -15,10 +15,10 @@ import (
 
 ////////////////////////////////
 	// "github.com/OtusGolang/webinars_practical_part/25-sql/internal/app"
-	"github.com/ksa75/go-hw/hw12_13_14_15_16_calendar/internal/app"
+	"mycalendar/internal/app"
 	// "github.com/OtusGolang/webinars_practical_part/25-sql/internal/config"
-    "github.com/ksa75/go-hw/hw12_13_14_15_16_calendar/internal/config"
-	"github.com/ksa75/go-hw/hw12_13_14_15_16_calendar/internal/storage/sql"
+    "mycalendar/internal/config"
+	"mycalendar/internal/storage/sql"
 	// "github.com/OtusGolang/webinars_practical_part/25-sql/internal/repository/psql"
 )
 
