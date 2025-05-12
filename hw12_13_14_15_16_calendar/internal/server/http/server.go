@@ -32,7 +32,7 @@ func NewServer(logger Logger, app Application, host string, port string) *Server
 	mux.HandleFunc("/", helloHandler)
 	mux.HandleFunc("/hello", helloHandler)
 
-
+	// функциональный конвейер
 	handler := loggingMiddleware(logger)(mux)
 
 	return &Server{

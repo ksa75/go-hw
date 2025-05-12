@@ -18,7 +18,7 @@ func loggingMiddleware(logger Logger) func(http.Handler) http.Handler {
 
 			ip, _, err := net.SplitHostPort(r.RemoteAddr)
 			if err != nil {
-				ip = r.RemoteAddr // fallback
+				ip = r.RemoteAddr
 			}
 
 			userAgent := r.UserAgent()
