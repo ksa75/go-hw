@@ -2,47 +2,53 @@ package app
 
 import (
 	"context"
-	"log"
+	"time"
 
 	"mycalendar/internal/storage"
 )
 
 type App struct {
-	s storage.BaseStorage
+	events storage.EventsStorage
+	logger Logger
 }
 
-// type Logger interface { // TODO
-// }
+type Logger interface {
+	Printf(format string, v ...any)
+	Info(msg string)
+	Error(msg string)
+}
 
-// type Storage interface { // TODO
-// }
+func New(logger Logger, events storage.EventsStorage) (*App, error) {
+	return &App{
+		events: events,
+		logger: logger,
+	}, nil
+}
 
-// func New(logger Logger, storage Storage) *App {
-// 	return &App{}
-// }
-
-// func (a *App) CreateEvent(ctx context.Context, id, title string) error {
-// 	// TODO
-// 	return nil
-// 	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
-// }
-
-// TODO
-
-func New(s storage.BaseStorage) (*App, error) {
-	return &App{s: s}, nil
+func (a *App) CreateEvent(ctx context.Context, userID, title string) error {
+	now := time.Now()
+	e := storage.Event{
+		UserID:        userID,
+		Title:         title,
+		StartDateTime: now.Add(1 * time.Hour),
+		Duration:      "1h",
+		NoticeBefore:  "15m",
+		CreatedAt:     now,
+	}
+	a.logger.Printf("dfdsdsds %v", e)
+	return a.events.AddEvent(ctx, e)
 }
 
 func (a *App) Run(ctx context.Context) error {
-	events, err := a.s.GetEvents(ctx)
+	events, err := a.events.GetEvents(ctx)
 	if err != nil {
 		return err
 	}
-
-	log.Println("events:")
-	for _, b := range events {
-		log.Printf("\t %+v", b)
-	}
+	a.logger.Printf("fdsfdsff %v", events)
+	// log.Println("events:")
+	// for _, b := range events {
+	// 	log.Printf("\t %+v", b)
+	// }
 
 	return nil
 }

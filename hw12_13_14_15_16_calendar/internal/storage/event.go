@@ -6,7 +6,11 @@ import (
 )
 
 type EventsStorage interface {
+	AddEvent(ctx context.Context, e Event) error
+	UpdateEvent(ctx context.Context, e Event) error
+	DeleteEvent(ctx context.Context, userID string, start time.Time) error
 	GetEvents(ctx context.Context) ([]Event, error)
+	GetEventsByDay(ctx context.Context, date time.Time) ([]Event, error)
 }
 
 type BaseStorage interface {

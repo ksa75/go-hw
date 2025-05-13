@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/lib/pq"
 	"github.com/pressly/goose/v3"
 	"mycalendar/internal/storage"
 )
@@ -79,4 +81,83 @@ func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 		Events = append(Events, e)
 	}
 	return Events, rows.Err()
+}
+
+func (s *Storage) AddEvent(ctx context.Context, e storage.Event) error {
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO events (user_id, title, description, start_date_time, duration, notice_before, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`, e.UserID, e.Title, e.Description, e.StartDateTime, e.Duration, e.NoticeBefore, e.CreatedAt)
+	if err != nil {
+		if isUniqueViolation(err) {
+			return storage.ErrDateBusy
+		}
+		return fmt.Errorf("cannot insert: %w", err)
+	}
+	return nil
+}
+
+func (s *Storage) UpdateEvent(ctx context.Context, e storage.Event) error {
+	res, err := s.db.ExecContext(ctx, `
+		UPDATE events
+		SET title = $1, description = $2, duration = $3, notice_before = $4
+		WHERE user_id = $5 AND start_date_time = $6
+	`, e.Title, e.Description, e.Duration, e.NoticeBefore, e.UserID, e.StartDateTime)
+	if err != nil {
+		return fmt.Errorf("cannot update: %w", err)
+	}
+
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		return storage.ErrNotFound
+	}
+	return nil
+}
+
+func (s *Storage) DeleteEvent(ctx context.Context, userID string, start time.Time) error {
+	res, err := s.db.ExecContext(ctx, `
+		DELETE FROM events
+		WHERE user_id = $1 AND start_date_time = $2
+	`, userID, start)
+	if err != nil {
+		return fmt.Errorf("cannot delete: %w", err)
+	}
+
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		return storage.ErrNotFound
+	}
+	return nil
+}
+
+func (s *Storage) GetEventsByDay(ctx context.Context, date time.Time) ([]storage.Event, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT user_id, title, description, start_date_time, duration, notice_before, created_at
+		FROM events
+		WHERE start_date_time >= $1 AND start_date_time < $2
+	`, date.Truncate(24*time.Hour), date.AddDate(0, 0, 1).Truncate(24*time.Hour))
+	if err != nil {
+		return nil, fmt.Errorf("cannot select: %w", err)
+	}
+	defer rows.Close()
+
+	var events []storage.Event
+	for rows.Next() {
+		var e storage.Event
+		if err := rows.Scan(
+			&e.UserID, &e.Title, &e.Description, &e.StartDateTime,
+			&e.Duration, &e.NoticeBefore, &e.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("cannot scan: %w", err)
+		}
+		events = append(events, e)
+	}
+	return events, rows.Err()
+}
+
+func isUniqueViolation(err error) bool {
+	if pqErr, ok := err.(*pq.Error); ok {
+		return pqErr.Code == "23505"
+	}
+	return false
 }

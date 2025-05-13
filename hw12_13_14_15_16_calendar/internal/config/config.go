@@ -8,9 +8,14 @@ func Read(fpath string) (c Config, err error) {
 }
 
 type Config struct {
-	PSQL   PSQLConfig
-	Logger LoggerConfig
-	HTTP   HTTPConfig
+	PSQL    PSQLConfig
+	Logger  LoggerConfig
+	HTTP    HTTPConfig
+	Storage StorageConfig // "memory" или "sql"
+}
+
+type StorageConfig struct {
+	Type string
 }
 
 type PSQLConfig struct {

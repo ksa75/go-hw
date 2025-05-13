@@ -12,6 +12,8 @@ import (
 	"mycalendar/internal/config"
 	"mycalendar/internal/logger"
 	internalhttp "mycalendar/internal/server/http"
+	"mycalendar/internal/storage"
+	memorystorage "mycalendar/internal/storage/memory"
 	sqlstorage "mycalendar/internal/storage/sql"
 )
 
@@ -74,29 +76,6 @@ func mainImpl() error {
 		return fmt.Errorf("cannot read config: %w", err)
 	}
 
-	s := new(sqlstorage.Storage)
-	if err := s.Connect(ctx, conf.PSQL.DSN); err != nil {
-		return fmt.Errorf("cannot connect to psql: %w", err)
-	}
-	defer func() {
-		if err := s.Close(); err != nil {
-			log.Println("cannot close psql connection", err)
-		}
-	}()
-
-	if err := s.Migrate(ctx, conf.PSQL.Migration); err != nil {
-		return fmt.Errorf("cannot migrate: %w", err)
-	}
-	////////////////////////
-	calendar, err := app.New(s)
-	if err != nil {
-		return fmt.Errorf("cannot create app: %w", err)
-	}
-
-	if err := calendar.Run(ctx); err != nil {
-		return fmt.Errorf("cannot run app: %w", err)
-	}
-
 	////////////////////////
 	mylogger, err := logger.New(conf.Logger.Level, conf.Logger.Path)
 	if err != nil {
@@ -106,6 +85,43 @@ func mainImpl() error {
 	mylogger.Debug("this is debug")
 	mylogger.Info("running on port")
 	mylogger.Error("something went wrong")
+	////////////////////////
+
+	var store storage.EventsStorage
+
+	switch conf.Storage.Type {
+	case "memory":
+		store = memorystorage.New()
+
+	case "sql":
+		sqlStore := sqlstorage.New()
+		if err := sqlStore.Connect(ctx, conf.PSQL.DSN); err != nil {
+			log.Fatalf("DB connect failed: %v", err)
+		}
+		if err := sqlStore.Migrate(ctx, conf.PSQL.Migration); err != nil {
+			return fmt.Errorf("cannot migrate: %w", err)
+		}
+		store = sqlStore
+
+	default:
+		log.Fatalf("unknown storage type: %s", conf.Storage.Type)
+	}
+
+	////////////////////////
+	calendar, err := app.New(mylogger, store)
+	if err != nil {
+		return fmt.Errorf("cannot create app: %w", err)
+	}
+
+	// Пример вызова
+	// err = calendar.CreateEvent(ctx, "user123", "demo")
+	// if err != nil {
+	// 	mylogger.Printf("failed to create event: %v", err)
+	// }
+
+	if err := calendar.Run(ctx); err != nil {
+		return fmt.Errorf("cannot run app: %w", err)
+	}
 
 	////////////////////////
 	srv := internalhttp.NewServer(mylogger, calendar, conf.HTTP.Host, conf.HTTP.Port)
