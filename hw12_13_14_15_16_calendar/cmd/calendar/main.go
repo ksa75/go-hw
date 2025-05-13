@@ -8,10 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"mycalendar/internal/logger"
-	// memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
 	"mycalendar/internal/app"
 	"mycalendar/internal/config"
+	"mycalendar/internal/logger"
 	internalhttp "mycalendar/internal/server/http"
 	sqlstorage "mycalendar/internal/storage/sql"
 )
@@ -72,12 +71,12 @@ func mainImpl() error {
 
 	conf, err := config.Read(configFile)
 	if err != nil {
-		return fmt.Errorf("cannot read config: %v", err)
+		return fmt.Errorf("cannot read config: %w", err)
 	}
 
 	s := new(sqlstorage.Storage)
 	if err := s.Connect(ctx, conf.PSQL.DSN); err != nil {
-		return fmt.Errorf("cannot connect to psql: %v", err)
+		return fmt.Errorf("cannot connect to psql: %w", err)
 	}
 	defer func() {
 		if err := s.Close(); err != nil {
@@ -86,16 +85,16 @@ func mainImpl() error {
 	}()
 
 	if err := s.Migrate(ctx, conf.PSQL.Migration); err != nil {
-		return fmt.Errorf("cannot migrate: %v", err)
+		return fmt.Errorf("cannot migrate: %w", err)
 	}
 	////////////////////////
 	calendar, err := app.New(s)
 	if err != nil {
-		return fmt.Errorf("cannot create app: %v", err)
+		return fmt.Errorf("cannot create app: %w", err)
 	}
 
 	if err := calendar.Run(ctx); err != nil {
-		return fmt.Errorf("cannot run app: %v", err)
+		return fmt.Errorf("cannot run app: %w", err)
 	}
 
 	////////////////////////

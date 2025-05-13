@@ -8,9 +8,9 @@ func Read(fpath string) (c Config, err error) {
 }
 
 type Config struct {
-	PSQL PSQLConfig
+	PSQL   PSQLConfig
 	Logger LoggerConfig
-	HTTP HTTPConfig
+	HTTP   HTTPConfig
 }
 
 type PSQLConfig struct {
@@ -19,13 +19,13 @@ type PSQLConfig struct {
 }
 
 type LoggerConfig struct {
-	Level     string
-	Path      string
+	Level string
+	Path  string
 }
 
 type HTTPConfig struct {
-	Host   string
-	Port      string
+	Host string
+	Port string
 }
 
 // При желании конфигурацию можно вынести в internal/config.

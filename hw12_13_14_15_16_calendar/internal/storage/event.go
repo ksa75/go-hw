@@ -16,13 +16,12 @@ type BaseStorage interface {
 	EventsStorage
 }
 
-
 type Event struct {
-	UserID    string
-	Title string
-	Description string
+	UserID        string
+	Title         string
+	Description   string
 	StartDateTime time.Time
-	Duration string
+	Duration      string
 	NoticeBefore  string
-	CreatedAt time.Time
+	CreatedAt     time.Time
 }

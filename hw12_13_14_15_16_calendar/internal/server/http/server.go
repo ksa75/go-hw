@@ -2,7 +2,6 @@ package internalhttp
 
 import (
 	"context"
-	// "fmt"
 	"net"
 	"net/http"
 )
