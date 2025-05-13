@@ -15,6 +15,8 @@ type Server struct {
 
 type Logger interface {
 	Printf(format string, v ...any)
+	Info(msg string)
+	Error(msg string)
 }
 
 type Application interface {

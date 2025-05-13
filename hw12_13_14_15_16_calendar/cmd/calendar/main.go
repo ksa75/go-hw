@@ -3,18 +3,13 @@ package main
 import (
 	"context"
 	"flag"
-	"io"
-	"os"
+	"fmt"
+	"log"
 	"os/signal"
 	"syscall"
 
-	// "time"
-	"fmt"
-	"log"
-
-	// "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
+	"mycalendar/internal/logger"
 	// memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
-	// "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
 	"mycalendar/internal/app"
 	"mycalendar/internal/config"
 	internalhttp "mycalendar/internal/server/http"
@@ -22,8 +17,6 @@ import (
 )
 
 var configFile string
-
-type dummyApp struct{}
 
 func init() {
 	flag.StringVar(&configFile, "config", "configs/config.toml", "Path to configuration file")
@@ -106,24 +99,23 @@ func mainImpl() error {
 	}
 
 	////////////////////////
-	// Открываем файл для логирования
-	logFile, err := os.OpenFile(conf.Logger.Path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	mylogger, err := logger.New(conf.Logger.Level, conf.Logger.Path)
 	if err != nil {
-		log.Fatalf("cannot open log file: %w", err)
+		log.Fatalf("failed to initialize logger: %v", err)
 	}
-	defer logFile.Close()
 
-	// Лог в stdout и в файл
-	multiWriter := io.MultiWriter(os.Stdout, logFile)
-	logger := log.New(multiWriter, "", 0)
+	mylogger.Debug("this is debug")
+	mylogger.Info("running on port")
+	mylogger.Error("something went wrong")
 
-	srv := internalhttp.NewServer(logger, calendar, "0.0.0.0", "8080")
+	////////////////////////
+	srv := internalhttp.NewServer(mylogger, calendar, conf.HTTP.Host, conf.HTTP.Port)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	if err := srv.Start(ctx); err != nil {
-		logger.Printf("Server exited with error: %v", err)
+		log.Printf("Server exited with error: %v", err)
 	}
 
 	return nil
