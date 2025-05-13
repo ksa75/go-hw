@@ -1,8 +1,8 @@
 # Собираем в гошке
-FROM golang:1.22 as build
+FROM golang:1.24.3 as build
 
-ENV BIN_FILE /opt/calendar/calendar-app
-ENV CODE_DIR /go/src/
+ENV BIN_FILE=/opt/calendar/calendar-app
+ENV CODE_DIR=/go/src/
 
 WORKDIR ${CODE_DIR}
 
@@ -27,10 +27,15 @@ LABEL ORGANIZATION="OTUS Online Education"
 LABEL SERVICE="calendar"
 LABEL MAINTAINERS="student@otus.ru"
 
-ENV BIN_FILE "/opt/calendar/calendar-app"
+ENV BIN_FILE="/opt/calendar/calendar-app"
 COPY --from=build ${BIN_FILE} ${BIN_FILE}
 
-ENV CONFIG_FILE /etc/calendar/config.toml
-COPY ./configs/config.toml ${CONFIG_FILE}
+ENV CONFIG_FILE=/etc/calendar/config.toml
+COPY ./configs/config.docker.toml ${CONFIG_FILE}
+
+ENV MIG_PATH=/opt/calendar/migrations/
+RUN mkdir ${MIG_PATH}
+COPY ./migrations/ ${MIG_PATH}
 
 CMD ${BIN_FILE} -config ${CONFIG_FILE}
+# ENTRYPOINT ["tail", "-f", "/dev/null"]

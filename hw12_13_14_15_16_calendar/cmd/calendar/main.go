@@ -3,26 +3,26 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
 	"io"
+	"os"
 	"os/signal"
 	"syscall"
+
 	// "time"
 	"fmt"
 	"log"
-	
-
 
 	// "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
 	// memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
 	// "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	internalhttp "mycalendar/internal/server/http"
 	"mycalendar/internal/app"
-    "mycalendar/internal/config"
-	"mycalendar/internal/storage/sql"
+	"mycalendar/internal/config"
+	internalhttp "mycalendar/internal/server/http"
+	sqlstorage "mycalendar/internal/storage/sql"
 )
 
 var configFile string
+
 type dummyApp struct{}
 
 func init() {
@@ -36,11 +36,11 @@ func main() {
 		printVersion()
 		return
 	}
-////////////////////////
+	////////////////////////
 	if err := mainImpl(); err != nil {
 		log.Fatal(err)
 	}
-////////////////////////
+	////////////////////////
 	// config := NewConfig()
 	// logg := logger.New(config.Logger.Level)
 
@@ -73,31 +73,30 @@ func main() {
 	// }
 }
 
-
 func mainImpl() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	c, err := config.Read("configs/local.toml")
+	c, err := config.Read(configFile)
 	if err != nil {
 		return fmt.Errorf("cannot read config: %v", err)
 	}
 
-	r := new(sqlstorage.Storage)
-	if err := r.Connect(ctx, c.PSQL.DSN); err != nil {
+	s := new(sqlstorage.Storage)
+	if err := s.Connect(ctx, c.PSQL.DSN); err != nil {
 		return fmt.Errorf("cannot connect to psql: %v", err)
 	}
 	defer func() {
-		if err := r.Close(); err != nil {
+		if err := s.Close(); err != nil {
 			log.Println("cannot close psql connection", err)
 		}
 	}()
 
-	if err := r.Migrate(ctx, c.PSQL.Migration); err != nil {
+	if err := s.Migrate(ctx, c.PSQL.Migration); err != nil {
 		return fmt.Errorf("cannot migrate: %v", err)
 	}
-////////////////////////
-	calendar, err := app.New(r)
+	////////////////////////
+	calendar, err := app.New(s)
 	if err != nil {
 		return fmt.Errorf("cannot create app: %v", err)
 	}
@@ -106,9 +105,9 @@ func mainImpl() error {
 		return fmt.Errorf("cannot run app: %v", err)
 	}
 
-////////////////////////
+	////////////////////////
 	// Открываем файл для логирования
-	logFile, err := os.OpenFile("access.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	logFile, err := os.OpenFile("logs/access.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("cannot open log file: %v", err)
 	}
@@ -125,7 +124,7 @@ func mainImpl() error {
 
 	if err := srv.Start(ctx); err != nil {
 		logger.Printf("Server exited with error: %v", err)
-	}	
+	}
 
 	return nil
 }

@@ -35,10 +35,10 @@ func (s *Storage) Close() error {
 }
 
 ///go:embed migrations/*.sql
-//var embedMigrations embed.FS
+// var embedMigrations embed.FS
 
 func (s *Storage) Migrate(ctx context.Context, migrate string) (err error) {
-	//	goose.SetBaseFS(embedMigrations)
+	// goose.SetBaseFS(embedMigrations)
 
 	if err := goose.SetDialect("postgres"); err != nil {
 		return fmt.Errorf("cannot set dialect: %w", err)
