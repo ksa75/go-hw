@@ -3,13 +3,15 @@ package sqlstorage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
+
+	"mycalendar/internal/storage"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/lib/pq"
 	"github.com/pressly/goose/v3"
-	"mycalendar/internal/storage"
 )
 
 var _ storage.BaseStorage = (*Storage)(nil) // interface assertion at compile time
@@ -156,7 +158,8 @@ func (s *Storage) GetEventsByDay(ctx context.Context, date time.Time) ([]storage
 }
 
 func isUniqueViolation(err error) bool {
-	if pqErr, ok := err.(*pq.Error); ok {
+	pqErr := &pq.Error{}
+	if errors.As(err, &pqErr) {
 		return pqErr.Code == "23505"
 	}
 	return false
