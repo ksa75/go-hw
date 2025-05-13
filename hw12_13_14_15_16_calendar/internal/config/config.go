@@ -9,11 +9,17 @@ func Read(fpath string) (c Config, err error) {
 
 type Config struct {
 	PSQL PSQLConfig
+	Logger LoggerConfig
 }
 
 type PSQLConfig struct {
 	DSN       string
 	Migration string
+}
+
+type LoggerConfig struct {
+	Level     string
+	Path      string
 }
 
 // При желании конфигурацию можно вынести в internal/config.

@@ -1,5 +1,6 @@
 [logger]
 level = "INFO"
+path = "logs/access.log"
 
 [psql]
 dsn = "host=host.docker.internal port=5432 user=postgres password=postgres dbname=calendar sslmode=disable"

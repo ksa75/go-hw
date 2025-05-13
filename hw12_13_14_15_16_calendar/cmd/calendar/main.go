@@ -26,7 +26,7 @@ var configFile string
 type dummyApp struct{}
 
 func init() {
-	flag.StringVar(&configFile, "config", "configs/config.yaml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "configs/config.toml", "Path to configuration file")
 }
 
 func main() {
@@ -77,13 +77,13 @@ func mainImpl() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	c, err := config.Read(configFile)
+	conf, err := config.Read(configFile)
 	if err != nil {
 		return fmt.Errorf("cannot read config: %v", err)
 	}
 
 	s := new(sqlstorage.Storage)
-	if err := s.Connect(ctx, c.PSQL.DSN); err != nil {
+	if err := s.Connect(ctx, conf.PSQL.DSN); err != nil {
 		return fmt.Errorf("cannot connect to psql: %v", err)
 	}
 	defer func() {
@@ -92,7 +92,7 @@ func mainImpl() error {
 		}
 	}()
 
-	if err := s.Migrate(ctx, c.PSQL.Migration); err != nil {
+	if err := s.Migrate(ctx, conf.PSQL.Migration); err != nil {
 		return fmt.Errorf("cannot migrate: %v", err)
 	}
 	////////////////////////
@@ -107,9 +107,9 @@ func mainImpl() error {
 
 	////////////////////////
 	// Открываем файл для логирования
-	logFile, err := os.OpenFile("logs/access.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	logFile, err := os.OpenFile(conf.Logger.Path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("cannot open log file: %v", err)
+		log.Fatalf("cannot open log file: %w", err)
 	}
 	defer logFile.Close()
 
