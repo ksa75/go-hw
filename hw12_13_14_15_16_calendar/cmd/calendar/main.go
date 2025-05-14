@@ -47,7 +47,7 @@ func mainImpl() error {
 	////////////////////////
 	mylogger, err := logger.New(conf.Logger.Level, conf.Logger.Path)
 	if err != nil {
-		log.Fatalf("failed to initialize logger: %v", err)
+		return fmt.Errorf("failed to initialize logger: %w", err)
 	}
 
 	mylogger.Debug("this is debug")
@@ -64,7 +64,7 @@ func mainImpl() error {
 	case "sql":
 		sqlStore := sqlstorage.New()
 		if err := sqlStore.Connect(ctx, conf.PSQL.DSN); err != nil {
-			log.Fatalf("DB connect failed: %v", err)
+			return fmt.Errorf("DB connect failed: %w", err)
 		}
 		if err := sqlStore.Migrate(ctx, conf.PSQL.Migration); err != nil {
 			return fmt.Errorf("cannot migrate: %w", err)
@@ -72,7 +72,7 @@ func mainImpl() error {
 		store = sqlStore
 
 	default:
-		log.Fatalf("unknown storage type: %s", conf.Storage.Type)
+		return fmt.Errorf("unknown storage type: %s", conf.Storage.Type)
 	}
 
 	////////////////////////
@@ -98,7 +98,7 @@ func mainImpl() error {
 	defer stop()
 
 	if err := srv.Start(ctx); err != nil {
-		log.Printf("Server exited with error: %v", err)
+		return fmt.Errorf("server exited with error: %w", err)
 	}
 
 	return nil

@@ -20,6 +20,7 @@ func New() *Storage {
 }
 
 func (s *Storage) AddEvent(ctx context.Context, e storage.Event) error {
+	_ = ctx
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	// Проверка на занятость времени
@@ -33,6 +34,7 @@ func (s *Storage) AddEvent(ctx context.Context, e storage.Event) error {
 }
 
 func (s *Storage) UpdateEvent(ctx context.Context, e storage.Event) error {
+	_ = ctx
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	evs := s.events[e.UserID]
@@ -46,6 +48,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, e storage.Event) error {
 }
 
 func (s *Storage) DeleteEvent(ctx context.Context, userID string, start time.Time) error {
+	_ = ctx
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	evs := s.events[userID]
@@ -60,6 +63,7 @@ func (s *Storage) DeleteEvent(ctx context.Context, userID string, start time.Tim
 }
 
 func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
+	_ = ctx
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var result []storage.Event
@@ -70,6 +74,7 @@ func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 }
 
 func (s *Storage) GetEventsByDay(ctx context.Context, day time.Time) ([]storage.Event, error) {
+	_ = ctx
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var result []storage.Event

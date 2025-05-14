@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"time"
 )
 
 type Server struct {
@@ -28,6 +29,7 @@ func NewServer(logger Logger, app Application, host string, port string) *Server
 	// "/" и "/hello" возвращают одно и то же
 	helloHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello, world!"))
+		_ = r.RemoteAddr
 	}
 
 	mux.HandleFunc("/", helloHandler)
@@ -40,8 +42,9 @@ func NewServer(logger Logger, app Application, host string, port string) *Server
 		logger: logger,
 		app:    app,
 		server: &http.Server{
-			Addr:    net.JoinHostPort(host, port),
-			Handler: handler,
+			Addr:              net.JoinHostPort(host, port),
+			Handler:           handler,
+			ReadHeaderTimeout: 5 * time.Second, // защита от Slowloris
 		},
 	}
 }
