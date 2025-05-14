@@ -37,5 +37,8 @@ ENV MIG_PATH=/opt/calendar/migrations/
 RUN mkdir ${MIG_PATH}
 COPY ./migrations/ ${MIG_PATH}
 
+ENV LOG_PATH=/opt/calendar/logs/
+RUN mkdir ${LOG_PATH}
+
 CMD ${BIN_FILE} -config ${CONFIG_FILE}
 # ENTRYPOINT ["tail", "-f", "/dev/null"]
