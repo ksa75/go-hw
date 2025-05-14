@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -24,7 +23,6 @@ type Logger struct {
 // New создаёт логгер с заданным уровнем и файлом.
 func New(levelStr, logPath string) (*Logger, error) {
 	level := parseLevel(levelStr)
-	fmt.Println(levelStr)
 
 	// открываем файл
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
