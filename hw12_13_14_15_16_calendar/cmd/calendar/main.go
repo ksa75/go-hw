@@ -7,6 +7,7 @@ import (
 	"log"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"mycalendar/internal/app"
 	"mycalendar/internal/config"
@@ -59,7 +60,6 @@ func mainImpl() error {
 	switch conf.Storage.Type {
 	case "memory":
 		store = memorystorage.New()
-
 	case "sql":
 		sqlStore := sqlstorage.New()
 		if err := sqlStore.Connect(ctx, conf.PSQL.DSN); err != nil {
@@ -80,11 +80,22 @@ func mainImpl() error {
 		return fmt.Errorf("cannot create app: %w", err)
 	}
 
-	// Пример вызова
-	// err = calendar.CreateEvent(ctx, "user123", "demo")
-	// if err != nil {
-	// 	mylogger.Printf("failed to create event: %v", err)
-	// }
+	if conf.Storage.Type == "memory" {
+		then, _ := time.Parse("2006-01-02", "2025-07-21")
+		then1, _ := time.Parse("2006-01-02", "2025-12-21")
+		err = calendar.CreateEvent(ctx, "007", "test event1", "test event", "1h", "15m", then1)
+		if err != nil {
+			mylogger.Printf("failed to create event: %v", err)
+		}
+		err = calendar.CreateEvent(ctx, "006", "test event2", "test event", "1h", "15m", then)
+		if err != nil {
+			mylogger.Printf("failed to create event: %v", err)
+		}
+		err = calendar.CreateEvent(ctx, "006", "test event3", "test event", "1h", "15m", then1)
+		if err != nil {
+			mylogger.Printf("failed to create event: %v", err)
+		}
+	}
 
 	if err := calendar.Run(ctx); err != nil {
 		return fmt.Errorf("cannot run app: %w", err)

@@ -26,14 +26,15 @@ func New(logger Logger, events storage.EventsStorage) (*App, error) {
 	}, nil
 }
 
-func (a *App) CreateEvent(ctx context.Context, userID, title string) error {
+func (a *App) CreateEvent(ctx context.Context, uID, title, desc, dur, noticeBefore string, startAt time.Time) error {
 	now := time.Now()
 	e := storage.Event{
-		UserID:        userID,
+		UserID:        uID,
 		Title:         title,
-		StartDateTime: now.Add(1 * time.Hour),
-		Duration:      "1h",
-		NoticeBefore:  "15m",
+		Description:   desc,
+		StartDateTime: startAt,
+		Duration:      dur,
+		NoticeBefore:  noticeBefore,
 		CreatedAt:     now,
 	}
 	// a.logger.Printf("dfdsdsds %v", e)

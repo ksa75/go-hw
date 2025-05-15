@@ -53,37 +53,6 @@ func (s *Storage) Migrate(ctx context.Context, migrate string) (err error) {
 	return nil
 }
 
-func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
-	rows, err := s.db.QueryContext(ctx, `
-		SELECT user_id, title, description, start_date_time, duration, notice_before, created_at FROM Events
-	`)
-	if err != nil {
-		return nil, fmt.Errorf("cannot select: %w", err)
-	}
-	defer rows.Close()
-
-	var Events []storage.Event
-
-	for rows.Next() {
-		var e storage.Event
-
-		if err := rows.Scan(
-			&e.UserID,
-			&e.Title,
-			&e.Description,
-			&e.StartDateTime,
-			&e.Duration,
-			&e.NoticeBefore,
-			&e.CreatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("cannot scan: %w", err)
-		}
-
-		Events = append(Events, e)
-	}
-	return Events, rows.Err()
-}
-
 func (s *Storage) AddEvent(ctx context.Context, e storage.Event) error {
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO events (user_id, title, description, start_date_time, duration, notice_before, created_at)
@@ -131,14 +100,108 @@ func (s *Storage) DeleteEvent(ctx context.Context, userID string, start time.Tim
 	return nil
 }
 
+func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT user_id, title, description, start_date_time, duration, notice_before, created_at FROM Events
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("cannot select: %w", err)
+	}
+	defer rows.Close()
+
+	var Events []storage.Event
+
+	for rows.Next() {
+		var e storage.Event
+
+		if err := rows.Scan(
+			&e.UserID,
+			&e.Title,
+			&e.Description,
+			&e.StartDateTime,
+			&e.Duration,
+			&e.NoticeBefore,
+			&e.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("cannot scan: %w", err)
+		}
+
+		Events = append(Events, e)
+	}
+	return Events, rows.Err()
+}
+
 func (s *Storage) GetEventsByDay(ctx context.Context, date time.Time) ([]storage.Event, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT user_id, title, description, start_date_time, duration, notice_before, created_at
-		FROM events
+		FROM Events
 		WHERE start_date_time >= $1 AND start_date_time < $2
 	`, date.Truncate(24*time.Hour), date.AddDate(0, 0, 1).Truncate(24*time.Hour))
 	if err != nil {
 		return nil, fmt.Errorf("cannot select: %w", err)
+	}
+	defer rows.Close()
+
+	var events []storage.Event
+	for rows.Next() {
+		var e storage.Event
+		if err := rows.Scan(
+			&e.UserID, &e.Title, &e.Description, &e.StartDateTime,
+			&e.Duration, &e.NoticeBefore, &e.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("cannot scan: %w", err)
+		}
+		events = append(events, e)
+	}
+	return events, rows.Err()
+}
+
+func (s *Storage) GetEventsByWeek(ctx context.Context, date time.Time) ([]storage.Event, error) {
+	// Находим понедельник текущей недели
+	isoWeekday := int(date.Weekday())
+	if isoWeekday == 0 {
+		isoWeekday = 7
+	}
+	startOfWeek := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC).
+		AddDate(0, 0, -isoWeekday+1)
+	endOfWeek := startOfWeek.AddDate(0, 0, 7)
+
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT user_id, title, description, start_date_time, duration, notice_before, created_at
+		FROM events
+		WHERE start_date_time >= $1 AND start_date_time < $2
+	`, startOfWeek, endOfWeek)
+	if err != nil {
+		return nil, fmt.Errorf("cannot select by week: %w", err)
+	}
+	defer rows.Close()
+
+	var events []storage.Event
+	for rows.Next() {
+		var e storage.Event
+		if err := rows.Scan(
+			&e.UserID, &e.Title, &e.Description, &e.StartDateTime,
+			&e.Duration, &e.NoticeBefore, &e.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("cannot scan: %w", err)
+		}
+		events = append(events, e)
+	}
+	return events, rows.Err()
+}
+
+func (s *Storage) GetEventsByMonth(ctx context.Context, date time.Time) ([]storage.Event, error) {
+	year := date.Year()
+	month := int(date.Month())
+
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT user_id, title, description, start_date_time, duration, notice_before, created_at
+		FROM Events
+		WHERE EXTRACT(MONTH FROM start_date_time) = $1
+		  AND EXTRACT(YEAR FROM start_date_time) = $2
+	`, month, year)
+	if err != nil {
+		return nil, fmt.Errorf("cannot select by month: %w", err)
 	}
 	defer rows.Close()
 

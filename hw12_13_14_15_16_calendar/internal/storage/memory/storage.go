@@ -73,15 +73,54 @@ func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 	return result, nil
 }
 
-func (s *Storage) GetEventsByDay(ctx context.Context, day time.Time) ([]storage.Event, error) {
+func (s *Storage) GetEventsByDay(ctx context.Context, date time.Time) ([]storage.Event, error) {
 	_ = ctx
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var result []storage.Event
 	for _, evs := range s.events {
 		for _, e := range evs {
-			if e.StartDateTime.Year() == day.Year() &&
-				e.StartDateTime.YearDay() == day.YearDay() {
+			if e.StartDateTime.Year() == date.Year() &&
+				e.StartDateTime.YearDay() == date.YearDay() {
+				result = append(result, e)
+			}
+		}
+	}
+	return result, nil
+}
+
+func (s *Storage) GetEventsByWeek(ctx context.Context, date time.Time) ([]storage.Event, error) {
+	_ = ctx
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var result []storage.Event
+
+	year, weekNum := date.ISOWeek()
+	for _, evs := range s.events {
+		for _, e := range evs {
+			evYear, evWeek := e.StartDateTime.ISOWeek()
+			if evYear == year && evWeek == weekNum {
+				result = append(result, e)
+			}
+		}
+	}
+	return result, nil
+}
+
+func (s *Storage) GetEventsByMonth(ctx context.Context, date time.Time) ([]storage.Event, error) {
+	_ = ctx
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var result []storage.Event
+
+	year := date.Year()
+	monthNum := date.Month()
+
+	for _, evs := range s.events {
+		for _, e := range evs {
+			if e.StartDateTime.Year() == year && e.StartDateTime.Month() == monthNum {
 				result = append(result, e)
 			}
 		}

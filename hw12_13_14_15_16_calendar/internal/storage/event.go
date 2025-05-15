@@ -11,6 +11,8 @@ type EventsStorage interface {
 	DeleteEvent(ctx context.Context, userID string, start time.Time) error
 	GetEvents(ctx context.Context) ([]Event, error)
 	GetEventsByDay(ctx context.Context, date time.Time) ([]Event, error)
+	GetEventsByWeek(ctx context.Context, date time.Time) ([]Event, error)
+	GetEventsByMonth(ctx context.Context, date time.Time) ([]Event, error)
 }
 
 type BaseStorage interface {
