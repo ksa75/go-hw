@@ -8,18 +8,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"mycalendar/internal/app"
 	internalhttp "mycalendar/internal/server/http"
 	memorystorage "mycalendar/internal/storage/memory"
-
-	"github.com/stretchr/testify/require"
 )
 
 type testLogger struct{}
 
-func (testLogger) Printf(format string, v ...any) {}
-func (testLogger) Info(msg string)                {}
-func (testLogger) Error(msg string)               {}
+func (testLogger) Printf(_ string, _ ...any) {}
+func (testLogger) Info(_ string)             {}
+func (testLogger) Error(_ string)            {}
 
 func TestIntegration_CreateGetDeleteEvent(t *testing.T) {
 	// Создаём реальные компоненты

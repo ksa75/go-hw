@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"mycalendar/internal/storage"
-
 	"github.com/gorilla/mux"
+	"mycalendar/internal/storage"
 )
 
 type Server struct {
@@ -53,10 +52,10 @@ func NewServer(logger Logger, app Application, host string, port string) *Server
 	r.HandleFunc("/events/month", s.getEventsByMonthHandler).Methods(http.MethodGet)
 
 	// Простой hello
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte("Hello, world!"))
 	})
-	r.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/hello", func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte("Hello, world!"))
 	})
 

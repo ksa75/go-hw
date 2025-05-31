@@ -6,9 +6,8 @@ import (
 	"os"
 	"time"
 
-	"mycalendar/internal/storage"
-
 	"github.com/lmittmann/tint"
+	"mycalendar/internal/storage"
 )
 
 type App struct {
