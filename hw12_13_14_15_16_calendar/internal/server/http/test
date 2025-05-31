@@ -1,0 +1,14 @@
+curl -X POST http://localhost:8080/events -H "Content-Type: application/json"  -d '{     
+  "user_id": "user-123",
+  "title": "GoConf",
+  "description": "Go Conference 2025",
+  "start_at": "2025-06-01T10:00:00Z",
+  "duration": "2",
+  "notice_before": "1"
+}'
+
+curl -X GET "http://localhost:8080/events/month?date=2025-06-01"
+
+curl -X GET "http://localhost:8080/events"
+
+curl -X DELETE "http://localhost:8080/events?user_id=user-123&start=2d=user-123&start=2025-06-01T10:00:00Z"

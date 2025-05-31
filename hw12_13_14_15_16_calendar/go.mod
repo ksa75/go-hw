@@ -4,8 +4,10 @@ go 1.24.3
 
 require (
 	github.com/BurntSushi/toml v1.5.0
+	github.com/gorilla/mux v1.8.1
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/lib/pq v1.10.2
+	github.com/lmittmann/tint v1.1.1
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/stretchr/testify v1.10.0
 )
