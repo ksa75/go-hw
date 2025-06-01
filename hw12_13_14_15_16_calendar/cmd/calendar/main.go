@@ -102,6 +102,22 @@ func mainImpl() error {
 	}
 
 	////////////////////////
+
+	// grpcServer := grpc.NewServer()
+	// calendarService := grpcserver.NewServer(calendar)
+	// pb.RegisterCalendarServiceServer(grpcServer, calendarService)
+	//
+	// lis, err := net.Listen("tcp", ":50051")
+	// if err != nil {
+	// log.Fatalf("failed to listen: %v", err)
+	// }
+	//
+	// log.Println("gRPC server listening on :50051")
+	// if err := grpcServer.Serve(lis); err != nil {
+	// log.Fatalf("failed to serve: %v", err)
+	// }
+
+	////////////////////////
 	srv := internalhttp.NewServer(mylogger, calendar, conf.HTTP.Host, conf.HTTP.Port)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
