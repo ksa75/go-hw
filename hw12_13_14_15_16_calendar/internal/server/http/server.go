@@ -6,15 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	"mycalendar/internal/storage"
-)
 
-type Server struct {
-	server *http.Server
-	logger Logger
-	app    Application
-}
+	"github.com/gorilla/mux"
+)
 
 type Logger interface {
 	Printf(format string, v ...any)
@@ -30,6 +25,12 @@ type Application interface {
 	GetEventsByDay(ctx context.Context, date time.Time) ([]storage.Event, error)
 	GetEventsByWeek(ctx context.Context, date time.Time) ([]storage.Event, error)
 	GetEventsByMonth(ctx context.Context, date time.Time) ([]storage.Event, error)
+}
+
+type Server struct {
+	server *http.Server
+	logger Logger
+	app    Application
 }
 
 func NewServer(logger Logger, app Application, host string, port string) *Server {
@@ -75,10 +76,10 @@ func (s *Server) Handler() http.Handler {
 func (s *Server) Start(ctx context.Context) error {
 	go func() {
 		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			s.logger.Printf("HTTP server ListenAndServe: %v", err)
+			s.logger.Printf("HTTP server error: %v", err)
 		}
 	}()
-	s.logger.Printf("Server started at %s", s.server.Addr)
+	s.logger.Printf("HTTP server listening on %s", s.server.Addr)
 
 	<-ctx.Done()
 	return s.Stop(context.Background())

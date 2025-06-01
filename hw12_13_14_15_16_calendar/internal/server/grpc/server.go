@@ -4,16 +4,10 @@ import (
 	"context"
 	"time"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
 	pb "mycalendar/api/calendarpb"
 	"mycalendar/internal/storage"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
-
-type Server struct {
-	pb.UnimplementedCalendarServiceServer
-	app Application
-}
 
 type Application interface {
 	CreateEvent(ctx context.Context, uID, title, desc, dur, noticeBefore string, startAt time.Time) error
@@ -25,18 +19,25 @@ type Application interface {
 	GetEventsByMonth(ctx context.Context, date time.Time) ([]storage.Event, error)
 }
 
+type Server struct {
+	pb.UnimplementedCalendarServiceServer
+	app Application
+}
+
 func NewServer(app Application) *Server {
 	return &Server{app: app}
 }
 
 func (s *Server) AddEvent(ctx context.Context, req *pb.EventRequest) (*pb.Empty, error) {
 	e := req.Event
-	return &pb.Empty{}, s.app.CreateEvent(ctx, e.UserId, e.Title, e.Description, e.Duration, e.NoticeBefore, e.StartAt.AsTime())
+	err := s.app.CreateEvent(ctx, e.UserId, e.Title, e.Description, e.Duration, e.NoticeBefore, e.StartAt.AsTime())
+	return &pb.Empty{}, err
 }
 
 func (s *Server) UpdateEvent(ctx context.Context, req *pb.EventRequest) (*pb.Empty, error) {
 	e := req.Event
-	return &pb.Empty{}, s.app.UpdateEvent(ctx, e.UserId, e.Title, e.Description, e.Duration, e.NoticeBefore, e.StartAt.AsTime())
+	err := s.app.UpdateEvent(ctx, e.UserId, e.Title, e.Description, e.Duration, e.NoticeBefore, e.StartAt.AsTime())
+	return &pb.Empty{}, err
 }
 
 func (s *Server) DeleteEvent(ctx context.Context, req *pb.DeleteRequest) (*pb.Empty, error) {
@@ -76,7 +77,7 @@ func (s *Server) GetEventsByMonth(ctx context.Context, req *pb.DateRequest) (*pb
 }
 
 func convertEvents(events []storage.Event) *pb.EventsResponse {
-	var res []*pb.Event
+	res := make([]*pb.Event, 0, len(events))
 	for _, e := range events {
 		res = append(res, &pb.Event{
 			UserId:       e.UserID,
