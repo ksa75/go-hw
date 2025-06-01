@@ -7,18 +7,12 @@ import (
 )
 
 type createOrUpdateEventRequest struct {
-	UserID       string    `json:"user_id"`
+	UserID       string    `json:"user_id"` //nolint:tagliatelle
 	Title        string    `json:"title"`
 	Description  string    `json:"description"`
-	StartAt      time.Time `json:"start_at"`
+	StartAt      time.Time `json:"start_at"` //nolint:tagliatelle
 	Duration     string    `json:"duration"`
-	NoticeBefore string    `json:"notice_before"`
-	// UserID       string    `json:"userId"`
-	// Title        string    `json:"title"`
-	// Description  string    `json:"description"`
-	// StartAt      time.Time `json:"startAt"`
-	// Duration     string    `json:"duration"`
-	// NoticeBefore string    `json:"noticeBefore"`
+	NoticeBefore string    `json:"notice_before"` //nolint:tagliatelle
 }
 
 func (s *Server) createEventHandler(w http.ResponseWriter, r *http.Request) {
