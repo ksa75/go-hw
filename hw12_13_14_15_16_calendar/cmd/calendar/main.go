@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"google.golang.org/grpc"
 	"mycalendar/api/calendarpb"
 	"mycalendar/internal/app"
 	"mycalendar/internal/config"
@@ -19,8 +20,6 @@ import (
 	"mycalendar/internal/storage"
 	memorystorage "mycalendar/internal/storage/memory"
 	sqlstorage "mycalendar/internal/storage/sql"
-
-	"google.golang.org/grpc"
 )
 
 var configFile string

@@ -21,7 +21,6 @@ type createOrUpdateEventRequest struct {
 	// NoticeBefore string    `json:"noticeBefore"`
 }
 
-// POST /events.
 func (s *Server) createEventHandler(w http.ResponseWriter, r *http.Request) {
 	var rq createOrUpdateEventRequest
 	if err := json.NewDecoder(r.Body).Decode(&rq); err != nil {
@@ -38,7 +37,6 @@ func (s *Server) createEventHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated) // 201 Created
 }
 
-// PUT /events.
 func (s *Server) updateEventHandler(w http.ResponseWriter, r *http.Request) {
 	var rq createOrUpdateEventRequest
 	if err := json.NewDecoder(r.Body).Decode(&rq); err != nil {
@@ -55,7 +53,6 @@ func (s *Server) updateEventHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// DELETE /events?user_id=xxx&start=2025-06-01T12:00:00Z.
 func (s *Server) deleteEventHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	startStr := r.URL.Query().Get("start")
@@ -79,7 +76,6 @@ func (s *Server) deleteEventHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent) // 204
 }
 
-// GET /events.
 func (s *Server) getEventsHandler(w http.ResponseWriter, r *http.Request) {
 	events, err := s.app.GetEvents(r.Context())
 	if err != nil {
@@ -90,7 +86,6 @@ func (s *Server) getEventsHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, events)
 }
 
-// GET /events/day?date=2025-06-01.
 func (s *Server) getEventsByDayHandler(w http.ResponseWriter, r *http.Request) {
 	date, err := parseDateQuery(r)
 	if err != nil {
@@ -107,7 +102,6 @@ func (s *Server) getEventsByDayHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, events)
 }
 
-// GET /events/week?date=2025-06-01.
 func (s *Server) getEventsByWeekHandler(w http.ResponseWriter, r *http.Request) {
 	date, err := parseDateQuery(r)
 	if err != nil {
@@ -124,7 +118,6 @@ func (s *Server) getEventsByWeekHandler(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, events)
 }
 
-// GET /events/month?date=2025-06-01.
 func (s *Server) getEventsByMonthHandler(w http.ResponseWriter, r *http.Request) {
 	date, err := parseDateQuery(r)
 	if err != nil {
@@ -141,7 +134,6 @@ func (s *Server) getEventsByMonthHandler(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, events)
 }
 
-// ///////////////////////////////////////////.
 func parseDateQuery(r *http.Request) (time.Time, error) {
 	dateStr := r.URL.Query().Get("date")
 	if dateStr == "" {

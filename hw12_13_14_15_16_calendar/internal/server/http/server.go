@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"mycalendar/internal/storage"
-
 	"github.com/gorilla/mux"
+	"mycalendar/internal/storage"
 )
 
 type Logger interface {
