@@ -4,6 +4,20 @@ DOCKER_IMG="calendar:develop"
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
+generate: install-protoc-deps
+	rm -rf api/calendarpb
+	protoc   \
+	--proto_path=.   \
+	--proto_path=/usr/include   \
+	--go_out=api   \
+	--go-grpc_out=api   \
+	api/EventService.proto
+
+install-protoc-deps:
+	sudo apt install protobuf-compiler -y
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
 build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
 

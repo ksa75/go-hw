@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package event;
-option go_package = "mycalendar/api/calendarpb;calendarpb";
+option go_package = "calendarpb/";
 
 import "google/protobuf/timestamp.proto";
 
