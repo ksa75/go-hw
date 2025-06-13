@@ -32,12 +32,12 @@ func TestIntegration_CreateGetDeleteEvent(t *testing.T) {
 	// --- POST /events: создаём событие
 	startAt := time.Now().UTC().Truncate(time.Second)
 	event := map[string]any{
-		"user_id":       "user1",
-		"title":         "Integration test event",
-		"description":   "desc",
-		"start_at":      startAt.Format(time.RFC3339),
-		"duration":      "1h",
-		"notice_before": "10m",
+		"userId":       "user1",
+		"title":        "Integration test event",
+		"description":  "desc",
+		"startAt":      startAt.Format(time.RFC3339),
+		"duration":     "1h",
+		"noticeBefore": "10m",
 	}
 	body, err := json.Marshal(event)
 	require.NoError(t, err)
@@ -61,7 +61,7 @@ func TestIntegration_CreateGetDeleteEvent(t *testing.T) {
 	require.Equal(t, "Integration test event", events[0]["Title"])
 
 	// --- DELETE /events: удаляем событие
-	url := "/events?user_id=user1&start=" + startAt.Format(time.RFC3339)
+	url := "/events?userId=user1&startAt=" + startAt.Format(time.RFC3339)
 	req = httptest.NewRequest(http.MethodDelete, url, nil)
 	rec = httptest.NewRecorder()
 	server.Handler().ServeHTTP(rec, req)
@@ -90,12 +90,12 @@ func TestIntegration_UpdateEvent(t *testing.T) {
 
 	// Step 1: Create event
 	createEvent := map[string]any{
-		"user_id":       "user1",
-		"title":         "Original Title",
-		"description":   "Original description",
-		"start_at":      startAt.Format(time.RFC3339),
-		"duration":      "1h",
-		"notice_before": "10m",
+		"userId":       "user1",
+		"title":        "Original Title",
+		"description":  "Original description",
+		"startAt":      startAt.Format(time.RFC3339),
+		"duration":     "1h",
+		"noticeBefore": "10m",
 	}
 	body, err := json.Marshal(createEvent)
 	require.NoError(t, err)
@@ -108,12 +108,12 @@ func TestIntegration_UpdateEvent(t *testing.T) {
 
 	// Step 2: Update event
 	updateEvent := map[string]any{
-		"user_id":       "user1",
-		"title":         "Updated Title",
-		"description":   "Updated description",
-		"start_at":      startAt.Format(time.RFC3339),
-		"duration":      "2h",
-		"notice_before": "20m",
+		"userId":       "user1",
+		"title":        "Updated Title",
+		"description":  "Updated description",
+		"startAt":      startAt.Format(time.RFC3339),
+		"duration":     "2h",
+		"noticeBefore": "20m",
 	}
 	body, err = json.Marshal(updateEvent)
 	require.NoError(t, err)
@@ -142,7 +142,7 @@ func TestIntegration_UpdateEvent(t *testing.T) {
 	require.Equal(t, "20m", updated["NoticeBefore"])
 
 	// Cleanup
-	url := "/events?user_id=user1&start=" + startAt.Format(time.RFC3339)
+	url := "/events?userId=user1&startAt=" + startAt.Format(time.RFC3339)
 	req = httptest.NewRequest(http.MethodDelete, url, nil)
 	rec = httptest.NewRecorder()
 	server.Handler().ServeHTTP(rec, req)
@@ -162,12 +162,12 @@ func TestIntegration_GetEventsByDayWeekMonth(t *testing.T) {
 
 	// Create event
 	event := map[string]any{
-		"user_id":       "user1",
-		"title":         "Event for range testing",
-		"description":   "Range test",
-		"start_at":      startAt.Format(time.RFC3339),
-		"duration":      "1h",
-		"notice_before": "5m",
+		"userId":       "user1",
+		"title":        "Event for range testing",
+		"description":  "Range test",
+		"startAt":      startAt.Format(time.RFC3339),
+		"duration":     "1h",
+		"noticeBefore": "5m",
 	}
 	body, err := json.Marshal(event)
 	require.NoError(t, err)
@@ -199,7 +199,7 @@ func TestIntegration_GetEventsByDayWeekMonth(t *testing.T) {
 	testRangeEndpoint("/events/month")
 
 	// Cleanup
-	url := "/events?user_id=user1&start=" + startAt.Format(time.RFC3339)
+	url := "/events?userId=user1&startAt=" + startAt.Format(time.RFC3339)
 	req = httptest.NewRequest(http.MethodDelete, url, nil)
 	rec = httptest.NewRecorder()
 	server.Handler().ServeHTTP(rec, req)

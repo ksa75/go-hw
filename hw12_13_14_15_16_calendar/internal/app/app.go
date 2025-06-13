@@ -60,8 +60,16 @@ func (a *App) DeleteEvent(ctx context.Context, userID string, start time.Time) e
 	return a.events.DeleteEvent(ctx, userID, start)
 }
 
+func (a *App) DeleteOldEvents(ctx context.Context, before time.Time) error {
+	return a.events.DeleteOldEvents(ctx, before)
+}
+
 func (a *App) GetEvents(ctx context.Context) ([]storage.Event, error) {
 	return a.events.GetEvents(ctx)
+}
+
+func (a *App) GetUpcomingEvents(ctx context.Context, from time.Time) ([]storage.Event, error) {
+	return a.events.GetUpcomingEvents(ctx, from)
 }
 
 func (a *App) GetEventsByDay(ctx context.Context, date time.Time) ([]storage.Event, error) {

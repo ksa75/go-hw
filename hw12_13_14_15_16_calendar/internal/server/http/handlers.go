@@ -7,12 +7,12 @@ import (
 )
 
 type createOrUpdateEventRequest struct {
-	UserID       string    `json:"user_id"` //nolint:tagliatelle
+	UserID       string    `json:"userId"`
 	Title        string    `json:"title"`
 	Description  string    `json:"description"`
-	StartAt      time.Time `json:"start_at"` //nolint:tagliatelle
+	StartAt      time.Time `json:"startAt"`
 	Duration     string    `json:"duration"`
-	NoticeBefore string    `json:"notice_before"` //nolint:tagliatelle
+	NoticeBefore string    `json:"noticeBefore"`
 }
 
 func (s *Server) createEventHandler(w http.ResponseWriter, r *http.Request) {
@@ -48,17 +48,17 @@ func (s *Server) updateEventHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteEventHandler(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("user_id")
-	startStr := r.URL.Query().Get("start")
+	userID := r.URL.Query().Get("userId")
+	startStr := r.URL.Query().Get("startAt")
 
 	if userID == "" || startStr == "" {
-		http.Error(w, "missing required query parameters: user_id and start", http.StatusBadRequest)
+		http.Error(w, "missing required query parameters: userId and startAt", http.StatusBadRequest)
 		return
 	}
 
 	startTime, err := time.Parse(time.RFC3339, startStr)
 	if err != nil {
-		http.Error(w, "invalid time format for 'start', use RFC3339", http.StatusBadRequest)
+		http.Error(w, "invalid time format for 'startAt', use RFC3339", http.StatusBadRequest)
 		return
 	}
 

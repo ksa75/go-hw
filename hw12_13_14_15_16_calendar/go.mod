@@ -9,6 +9,7 @@ require (
 	github.com/lib/pq v1.10.2
 	github.com/lmittmann/tint v1.1.1
 	github.com/pressly/goose/v3 v3.24.3
+	github.com/streadway/amqp v1.1.0
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.6

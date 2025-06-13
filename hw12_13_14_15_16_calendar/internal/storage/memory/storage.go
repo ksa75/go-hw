@@ -73,6 +73,43 @@ func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 	return result, nil
 }
 
+func (s *Storage) DeleteOldEvents(ctx context.Context, before time.Time) error {
+	_ = ctx
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for userID, evs := range s.events {
+		var filtered []storage.Event
+		for _, e := range evs {
+			if !e.StartDateTime.Before(before) {
+				filtered = append(filtered, e)
+			}
+		}
+		if len(filtered) == 0 {
+			delete(s.events, userID) // clean up empty slice
+		} else {
+			s.events[userID] = filtered
+		}
+	}
+	return nil
+}
+
+func (s *Storage) GetUpcomingEvents(ctx context.Context, from time.Time) ([]storage.Event, error) {
+	_ = ctx
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var result []storage.Event
+	for _, evs := range s.events {
+		for _, e := range evs {
+			if !e.StartDateTime.Before(from) {
+				result = append(result, e)
+			}
+		}
+	}
+	return result, nil
+}
+
 func (s *Storage) GetEventsByDay(ctx context.Context, date time.Time) ([]storage.Event, error) {
 	_ = ctx
 	s.mu.RLock()

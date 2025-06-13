@@ -20,7 +20,9 @@ type Application interface {
 	CreateEvent(ctx context.Context, uID, title, desc, dur, noticeBefore string, startAt time.Time) error
 	UpdateEvent(ctx context.Context, uID, title, desc, dur, noticeBefore string, startAt time.Time) error
 	DeleteEvent(ctx context.Context, userID string, start time.Time) error
+	DeleteOldEvents(ctx context.Context, before time.Time) error
 	GetEvents(ctx context.Context) ([]storage.Event, error)
+	GetUpcomingEvents(ctx context.Context, from time.Time) ([]storage.Event, error)
 	GetEventsByDay(ctx context.Context, date time.Time) ([]storage.Event, error)
 	GetEventsByWeek(ctx context.Context, date time.Time) ([]storage.Event, error)
 	GetEventsByMonth(ctx context.Context, date time.Time) ([]storage.Event, error)
