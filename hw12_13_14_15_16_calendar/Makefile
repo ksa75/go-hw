@@ -1,4 +1,6 @@
 BIN := "./bin/calendar"
+BIN_SENDER := "./bin/calendar_sender"
+BIN_SCHEDULER := "./bin/calendar_scheduler"
 DOCKER_IMG="calendar:develop"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
@@ -20,6 +22,8 @@ install-protoc-deps:
 
 build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(BIN_SCHEDULER) -ldflags "$(LDFLAGS)" ./cmd/scheduler
+	go build -v -o $(BIN_SENDER) -ldflags "$(LDFLAGS)" ./cmd/sender
 
 run: build
 	$(BIN) -config ./configs/config.toml
