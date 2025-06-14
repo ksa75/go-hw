@@ -7,11 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"mycalendar/internal/storage"
-
 	_ "github.com/jackc/pgx/v4/stdlib" // так надо
 	"github.com/lib/pq"
 	"github.com/pressly/goose/v3"
+	"mycalendar/internal/storage"
 )
 
 var _ storage.BaseStorage = (*Storage)(nil) // interface assertion at compile time

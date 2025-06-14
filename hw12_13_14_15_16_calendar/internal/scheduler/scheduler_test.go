@@ -6,10 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"mycalendar/internal/scheduler"
 	"mycalendar/internal/storage"
-
-	"github.com/stretchr/testify/mock"
 )
 
 type MockStorage struct {
@@ -26,19 +25,21 @@ func (m *MockStorage) DeleteOldEvents(ctx context.Context, before time.Time) err
 	return args.Error(0)
 }
 
-func (m *MockStorage) AddEvent(ctx context.Context, e storage.Event) error    { return nil }
-func (m *MockStorage) UpdateEvent(ctx context.Context, e storage.Event) error { return nil }
-func (m *MockStorage) DeleteEvent(ctx context.Context, userID string, start time.Time) error {
+func (m *MockStorage) AddEvent(_ context.Context, _ storage.Event) error    { return nil }
+func (m *MockStorage) UpdateEvent(_ context.Context, _ storage.Event) error { return nil }
+func (m *MockStorage) DeleteEvent(_ context.Context, _ string, _ time.Time) error {
 	return nil
 }
-func (m *MockStorage) GetEvents(ctx context.Context) ([]storage.Event, error) { return nil, nil }
-func (m *MockStorage) GetEventsByDay(ctx context.Context, date time.Time) ([]storage.Event, error) {
+func (m *MockStorage) GetEvents(_ context.Context) ([]storage.Event, error) { return nil, nil }
+func (m *MockStorage) GetEventsByDay(_ context.Context, _ time.Time) ([]storage.Event, error) {
 	return nil, nil
 }
-func (m *MockStorage) GetEventsByWeek(ctx context.Context, date time.Time) ([]storage.Event, error) {
+
+func (m *MockStorage) GetEventsByWeek(_ context.Context, _ time.Time) ([]storage.Event, error) {
 	return nil, nil
 }
-func (m *MockStorage) GetEventsByMonth(ctx context.Context, date time.Time) ([]storage.Event, error) {
+
+func (m *MockStorage) GetEventsByMonth(_ context.Context, _ time.Time) ([]storage.Event, error) {
 	return nil, nil
 }
 
