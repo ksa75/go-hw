@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	"mycalendar/internal/storage"
+
 	_ "github.com/jackc/pgx/v4/stdlib" // так надо
 	"github.com/lib/pq"
 	"github.com/pressly/goose/v3"
-	"mycalendar/internal/storage"
 )
 
 var _ storage.BaseStorage = (*Storage)(nil) // interface assertion at compile time
@@ -152,10 +153,11 @@ func (s *Storage) GetUpcomingEvents(ctx context.Context, from time.Time) ([]stor
 		SELECT id, user_id, title, description, start_date_time, duration, notice_before, created_at
 		FROM events
 		WHERE start_date_time >= $1
-		ORDER BY start_date_time ASC
-	`, from)
+		AND start_date_time - notice_before * INTERVAL '1 day' <= $2
+		ORDER BY start_date_time ASC`,
+		from, from)
 	if err != nil {
-		return nil, fmt.Errorf("cannot select upcoming events: %w", err)
+		return nil, fmt.Errorf("cannot select events to notify: %w", err)
 	}
 	defer rows.Close()
 
