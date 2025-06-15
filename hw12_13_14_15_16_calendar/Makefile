@@ -8,6 +8,14 @@ DOCKER_IMG_SCHEDULER="calendar_scheduler:develop"
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
+up:
+	cd deployments
+	docker-compose up -d
+
+down:
+	cd deployments
+	docker-compose down
+
 generate: install-protoc-deps
 	rm -rf api/calendarpb
 	protoc   \

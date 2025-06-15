@@ -4,6 +4,11 @@ services:
   postgres:
     image: postgres:14
     container_name: calendar_postgres
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -16,6 +21,11 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: calendar_rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "5672:5672"
       - "15672:15672" # Management UI (optional)
@@ -26,9 +36,10 @@ services:
     image: calendar:develop
     container_name: calendar_app
     ports:
-      - "8080:8080"
+      - "8888:8080"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
       LOG_PATH: "${LOG_PATH}"
@@ -51,8 +62,10 @@ services:
     image: calendar_scheduler:develop
     container_name: calendar_scheduler
     depends_on:
-      - postgres
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       POSTGRES_DSN: "${POSTGRES_DSN}"
       QUEUE_URL: "${QUEUE_URL}"
@@ -66,7 +79,8 @@ services:
     image: calendar_sender:develop
     container_name: calendar_sender
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     environment:
       QUEUE_URL: "${QUEUE_URL}"
       QUEUE_NAME: "${QUEUE_NAME}"
