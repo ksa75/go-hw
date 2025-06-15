@@ -27,11 +27,12 @@ LABEL ORGANIZATION="OTUS Online Education"
 LABEL SERVICE="calendar"
 LABEL MAINTAINERS="student@otus.ru"
 
+WORKDIR /opt/calendar
 ENV BIN_FILE="/opt/calendar/calendar-app"
 COPY --from=build ${BIN_FILE} ${BIN_FILE}
 
 ENV CONFIG_FILE=/etc/calendar/config.toml
-COPY ./configs/config.docker.toml ${CONFIG_FILE}
+COPY ./configs/config.toml ${CONFIG_FILE}
 
 ENV MIG_PATH=/opt/calendar/migrations/
 RUN mkdir ${MIG_PATH}
@@ -40,5 +41,6 @@ COPY ./migrations/ ${MIG_PATH}
 ENV LOG_PATH=/opt/calendar/logs/
 RUN mkdir ${LOG_PATH}
 
-CMD ["${BIN_FILE}", "-config", "${CONFIG_FILE}"]
+CMD ${BIN_FILE} -config ${CONFIG_FILE}
+# CMD [${BIN_FILE}, "-config", ${CONFIG_FILE}]
 # ENTRYPOINT ["tail", "-f", "/dev/null"]

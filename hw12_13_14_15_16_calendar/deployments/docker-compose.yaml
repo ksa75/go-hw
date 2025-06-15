@@ -2,19 +2,19 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres
+    image: postgres:14
     container_name: calendar_postgres
     environment:
-      POSTGRES_USER: calendar_user
-      POSTGRES_PASSWORD: calendar_pass
-      POSTGRES_DB: calendar_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: calendar
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - calendar_net
 
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3-management
     container_name: calendar_rabbitmq
     ports:
       - "5672:5672"
@@ -23,37 +23,55 @@ services:
       - calendar_net
 
   calendar:
-    image: calendar
+    image: calendar:develop
     container_name: calendar_app
     ports:
       - "8080:8080"
     depends_on:
       - postgres
-      - rabbitmq
     environment:
-      DATABASE_URL: postgres://calendar_user:calendar_pass@postgres:5432/calendar_db
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      LOG_LEVEL: ${LOG_LEVEL}
+      LOG_PATH: "${LOG_PATH}"
+      POSTGRES_DSN: "${POSTGRES_DSN}"
+      MIGRATION_PATH: "${MIGRATION_PATH}"
+      HTTP_HOST: "${HTTP_HOST}"
+      HTTP_PORT: "${HTTP_PORT}"
+      GRPC_HOST: "${GRPC_HOST}"
+      GRPC_PORT: "${GRPC_PORT}"
+      STORAGE_TYPE: "${STORAGE_TYPE}"
+      QUEUE_URL: "${QUEUE_URL}"
+      QUEUE_NAME: "${QUEUE_NAME}"
+      SCHEDULER_INTERVAL: ${SCHEDULER_INTERVAL}
+      SCHEDULER_CLEANUP_DAYS: ${SCHEDULER_CLEANUP_DAYS}
+      SENDER_LOG_LEVEL: "${SENDER_LOG_LEVEL}"
     networks:
       - calendar_net
 
   calendar_scheduler:
-    image: calendar_scheduler
+    image: calendar_scheduler:develop
     container_name: calendar_scheduler
     depends_on:
+      - postgres
       - rabbitmq
     environment:
-      DATABASE_URL: postgres://calendar_user:calendar_pass@postgres:5432/calendar_db
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      POSTGRES_DSN: "${POSTGRES_DSN}"
+      QUEUE_URL: "${QUEUE_URL}"
+      QUEUE_NAME: "${QUEUE_NAME}"
+      SCHEDULER_INTERVAL: ${SCHEDULER_INTERVAL}
+      SCHEDULER_CLEANUP_DAYS: ${SCHEDULER_CLEANUP_DAYS}
     networks:
       - calendar_net
 
   calendar_sender:
-    image: calendar_sender
+    image: calendar_sender:develop
     container_name: calendar_sender
     depends_on:
       - rabbitmq
     environment:
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      QUEUE_URL: "${QUEUE_URL}"
+      QUEUE_NAME: "${QUEUE_NAME}"
+      SCHEDULER_INTERVAL: ${SCHEDULER_INTERVAL}
+      SCHEDULER_CLEANUP_DAYS: ${SCHEDULER_CLEANUP_DAYS}
     networks:
       - calendar_net
 
