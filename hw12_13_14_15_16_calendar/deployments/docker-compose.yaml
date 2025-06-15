@@ -1,1 +1,64 @@
-version: "3"
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    container_name: calendar_postgres
+    environment:
+      POSTGRES_USER: calendar_user
+      POSTGRES_PASSWORD: calendar_pass
+      POSTGRES_DB: calendar_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - calendar_net
+
+  rabbitmq:
+    image: rabbitmq
+    container_name: calendar_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Management UI (optional)
+    networks:
+      - calendar_net
+
+  calendar:
+    image: calendar
+    container_name: calendar_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      DATABASE_URL: postgres://calendar_user:calendar_pass@postgres:5432/calendar_db
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    networks:
+      - calendar_net
+
+  calendar_scheduler:
+    image: calendar_scheduler
+    container_name: calendar_scheduler
+    depends_on:
+      - rabbitmq
+    environment:
+      DATABASE_URL: postgres://calendar_user:calendar_pass@postgres:5432/calendar_db
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    networks:
+      - calendar_net
+
+  calendar_sender:
+    image: calendar_sender
+    container_name: calendar_sender
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    networks:
+      - calendar_net
+
+volumes:
+  postgres_data:
+
+networks:
+  calendar_net:
