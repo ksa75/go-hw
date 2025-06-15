@@ -100,6 +100,22 @@ func (s *Storage) DeleteEvent(ctx context.Context, userID string, start time.Tim
 	return nil
 }
 
+func (s *Storage) DeleteOldEvents(ctx context.Context, before time.Time) error {
+	res, err := s.db.ExecContext(ctx, `
+		DELETE FROM events
+		WHERE start_date_time < $1
+	`, before)
+	if err != nil {
+		return fmt.Errorf("cannot delete old events: %w", err)
+	}
+
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		return storage.ErrNotFound // or return nil if no-op is OK
+	}
+	return nil
+}
+
 func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT user_id, title, description, start_date_time, duration, notice_before, created_at FROM Events
@@ -129,6 +145,42 @@ func (s *Storage) GetEvents(ctx context.Context) ([]storage.Event, error) {
 		Events = append(Events, e)
 	}
 	return Events, rows.Err()
+}
+
+func (s *Storage) GetUpcomingEvents(ctx context.Context, from time.Time) ([]storage.Event, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, user_id, title, description, start_date_time, duration, notice_before, created_at
+		FROM events
+		WHERE start_date_time >= $1
+		AND start_date_time - notice_before * INTERVAL '1 day' <= $2
+		ORDER BY start_date_time ASC`,
+		from, from)
+	if err != nil {
+		return nil, fmt.Errorf("cannot select events to notify: %w", err)
+	}
+	defer rows.Close()
+
+	var events []storage.Event
+
+	for rows.Next() {
+		var e storage.Event
+
+		if err := rows.Scan(
+			&e.EventID,
+			&e.UserID,
+			&e.Title,
+			&e.Description,
+			&e.StartDateTime,
+			&e.Duration,
+			&e.NoticeBefore,
+			&e.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("cannot scan: %w", err)
+		}
+
+		events = append(events, e)
+	}
+	return events, rows.Err()
 }
 
 func (s *Storage) GetEventsByDay(ctx context.Context, date time.Time) ([]storage.Event, error) {

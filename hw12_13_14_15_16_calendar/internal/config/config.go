@@ -11,7 +11,27 @@ type Config struct {
 	PSQL    PSQLConfig
 	Logger  LoggerConfig
 	HTTP    HTTPConfig
+	GRPC    GRPCConfig
 	Storage StorageConfig // "memory" или "sql"
+
+	Queue     QueueConfig
+	Scheduler SchedulerConfig
+	Sender    SenderConfig
+}
+
+type QueueConfig struct {
+	URL  string
+	Name string
+}
+
+type SchedulerConfig struct {
+	IntervalSeconds      int // how often to run (in seconds)
+	CleanupEnabled       bool
+	CleanupOlderThanDays int
+}
+
+type SenderConfig struct {
+	LogLevel string
 }
 
 type StorageConfig struct {
@@ -29,6 +49,11 @@ type LoggerConfig struct {
 }
 
 type HTTPConfig struct {
+	Host string
+	Port string
+}
+
+type GRPCConfig struct {
 	Host string
 	Port string
 }

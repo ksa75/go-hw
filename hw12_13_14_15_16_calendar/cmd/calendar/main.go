@@ -5,13 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"google.golang.org/grpc"
+	"mycalendar/api/calendarpb"
 	"mycalendar/internal/app"
 	"mycalendar/internal/config"
 	"mycalendar/internal/logger"
+	grpcserver "mycalendar/internal/server/grpc"
 	internalhttp "mycalendar/internal/server/http"
 	"mycalendar/internal/storage"
 	memorystorage "mycalendar/internal/storage/memory"
@@ -104,11 +108,46 @@ func mainImpl() error {
 	////////////////////////
 	srv := internalhttp.NewServer(mylogger, calendar, conf.HTTP.Host, conf.HTTP.Port)
 
+	grpcServer := grpc.NewServer()
+	calendarpb.RegisterCalendarServiceServer(grpcServer, grpcserver.NewServer(calendar))
+
+	// Create context with cancel on SIGINT/SIGTERM
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	if err := srv.Start(ctx); err != nil {
-		return fmt.Errorf("server exited with error: %w", err)
+	// Start gRPC server in a goroutine
+	go func() {
+		grpcAddr := net.JoinHostPort(conf.GRPC.Host, conf.GRPC.Port)
+		lis, err := net.Listen("tcp", grpcAddr)
+		if err != nil {
+			mylogger.Printf("failed to listen for gRPC: %v", err)
+			stop()
+			return
+		}
+		mylogger.Printf("gRPC server listening on %s", grpcAddr)
+
+		if err := grpcServer.Serve(lis); err != nil {
+			mylogger.Printf("gRPC server error: %v", err)
+			stop()
+		}
+	}()
+
+	// Start HTTP server in a goroutine
+	go func() {
+		if err := srv.Start(ctx); err != nil {
+			mylogger.Printf("HTTP server error: %v", err)
+			stop()
+		}
+	}()
+
+	// Wait for signal
+	<-ctx.Done()
+	mylogger.Printf("Shutdown signal received")
+
+	// Gracefully stop servers
+	grpcServer.GracefulStop()
+	if err := srv.Stop(context.Background()); err != nil {
+		mylogger.Printf("error shutting down HTTP server: %v", err)
 	}
 
 	return nil
