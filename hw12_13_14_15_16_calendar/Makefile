@@ -72,15 +72,19 @@ lint: install-lint-deps
 integration-tests:
 	cd deployments && \
 	docker compose down -v --remove-orphans || true && \
-	docker compose build && \
+	# docker compose build && \
 	docker compose up -d && \
+	echo "Looking up integration-tests container ID..."; \
 	CONTAINER_ID=$$(docker compose ps -a -q integration-tests); \
 	if [ -z "$$CONTAINER_ID" ]; then \
 		echo "Error: integration-tests container not found."; \
+		docker compose ps; \
+		docker compose logs; \
 		docker compose down -v --remove-orphans; \
 		exit 1; \
 	fi; \
-	# Wait until container has an exit code (i.e., it's stopped)
+	echo "Found container ID: $$CONTAINER_ID"; \
+	echo "Waiting for integration-tests container to finish..."; \
 	while [ "$$(docker inspect -f '{{.State.Status}}' $$CONTAINER_ID)" = "running" ]; do \
 		sleep 1; \
 	done; \
