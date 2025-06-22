@@ -9,12 +9,10 @@ GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
 up:
-	cd deployments
-	docker-compose up -d
+	cd deployments && docker compose up -d
 
 down:
-	cd deployments
-	docker-compose down
+	cd deployments && docker compose down
 
 generate: install-protoc-deps
 	rm -rf api/calendarpb
@@ -72,9 +70,22 @@ lint: install-lint-deps
 .PHONY: build run build-img run-img version test lint
 
 integration-tests:
-	cd deployments && docker-compose down -v --remove-orphans || true
-	cd deployments && docker-compose build
-	cd deployments && docker-compose up --abort-on-container-exit --exit-code-from integration-tests
-	RESULT=$$?; \
-	cd deployments && docker-compose down -v --remove-orphans; \
+	cd deployments && \
+	docker compose down -v --remove-orphans || true && \
+	docker compose build && \
+	docker compose up -d && \
+	CONTAINER_ID=$$(docker compose ps -a -q integration-tests); \
+	if [ -z "$$CONTAINER_ID" ]; then \
+		echo "Error: integration-tests container not found."; \
+		docker compose down -v --remove-orphans; \
+		exit 1; \
+	fi; \
+	# Wait until container has an exit code (i.e., it's stopped)
+	while [ "$$(docker inspect -f '{{.State.Status}}' $$CONTAINER_ID)" = "running" ]; do \
+		sleep 1; \
+	done; \
+	echo "Fetching logs for integration-tests..."; \
+	docker compose logs integration-tests; \
+	RESULT=$$(docker inspect -f '{{.State.ExitCode}}' $$CONTAINER_ID); \
+	docker compose down -v --remove-orphans; \
 	exit $$RESULT
