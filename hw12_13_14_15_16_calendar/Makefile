@@ -70,3 +70,11 @@ lint: install-lint-deps
 	golangci-lint run ./... --fix
 
 .PHONY: build run build-img run-img version test lint
+
+integration-tests:
+	cd deployments && docker-compose down -v --remove-orphans || true
+	cd deployments && docker-compose build
+	cd deployments && docker-compose up --abort-on-container-exit --exit-code-from integration-tests
+	RESULT=$$?; \
+	cd deployments && docker-compose down -v --remove-orphans; \
+	exit $$RESULT

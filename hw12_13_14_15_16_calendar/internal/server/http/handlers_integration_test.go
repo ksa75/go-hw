@@ -37,7 +37,7 @@ func TestIntegration_CreateGetDeleteEvent(t *testing.T) {
 		"description":  "desc",
 		"startAt":      startAt.Format(time.RFC3339),
 		"duration":     "1h",
-		"noticeBefore": "10m",
+		"noticeBefore": 10,
 	}
 	body, err := json.Marshal(event)
 	require.NoError(t, err)
@@ -95,7 +95,7 @@ func TestIntegration_UpdateEvent(t *testing.T) {
 		"description":  "Original description",
 		"startAt":      startAt.Format(time.RFC3339),
 		"duration":     "1h",
-		"noticeBefore": "10m",
+		"noticeBefore": 10,
 	}
 	body, err := json.Marshal(createEvent)
 	require.NoError(t, err)
@@ -113,7 +113,7 @@ func TestIntegration_UpdateEvent(t *testing.T) {
 		"description":  "Updated description",
 		"startAt":      startAt.Format(time.RFC3339),
 		"duration":     "2h",
-		"noticeBefore": "20m",
+		"noticeBefore": 20,
 	}
 	body, err = json.Marshal(updateEvent)
 	require.NoError(t, err)
@@ -139,7 +139,7 @@ func TestIntegration_UpdateEvent(t *testing.T) {
 	require.Equal(t, "Updated Title", updated["Title"])
 	require.Equal(t, "Updated description", updated["Description"])
 	require.Equal(t, "2h", updated["Duration"])
-	require.Equal(t, "20m", updated["NoticeBefore"])
+	require.Equal(t, float64(20), updated["NoticeBefore"])
 
 	// Cleanup
 	url := "/events?userId=user1&startAt=" + startAt.Format(time.RFC3339)
@@ -167,7 +167,7 @@ func TestIntegration_GetEventsByDayWeekMonth(t *testing.T) {
 		"description":  "Range test",
 		"startAt":      startAt.Format(time.RFC3339),
 		"duration":     "1h",
-		"noticeBefore": "5m",
+		"noticeBefore": 5,
 	}
 	body, err := json.Marshal(event)
 	require.NoError(t, err)

@@ -15,6 +15,8 @@ services:
       POSTGRES_DB: calendar
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     networks:
       - calendar_net
 
@@ -86,6 +88,20 @@ services:
       QUEUE_NAME: "${QUEUE_NAME}"
       SCHEDULER_INTERVAL: ${SCHEDULER_INTERVAL}
       SCHEDULER_CLEANUP_DAYS: ${SCHEDULER_CLEANUP_DAYS}
+    networks:
+      - calendar_net
+
+
+  integration-tests:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile.integration
+    depends_on:
+      - calendar
+      - calendar_sender
+      - calendar_scheduler
+    environment:
+      - TEST_TIMEOUT=60
     networks:
       - calendar_net
 

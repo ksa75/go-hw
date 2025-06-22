@@ -17,8 +17,8 @@ type Logger interface {
 }
 
 type Application interface {
-	CreateEvent(ctx context.Context, uID, title, desc, dur, noticeBefore string, startAt time.Time) error
-	UpdateEvent(ctx context.Context, uID, title, desc, dur, noticeBefore string, startAt time.Time) error
+	CreateEvent(ctx context.Context, uID, title, desc, dur string, noticeBefore int32, startAt time.Time) error
+	UpdateEvent(ctx context.Context, uID, title, desc, dur string, noticeBefore int32, startAt time.Time) error
 	DeleteEvent(ctx context.Context, userID string, start time.Time) error
 	DeleteOldEvents(ctx context.Context, before time.Time) error
 	GetEvents(ctx context.Context) ([]storage.Event, error)

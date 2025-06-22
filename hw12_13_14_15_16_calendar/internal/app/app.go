@@ -28,7 +28,7 @@ func New(logger Logger, events storage.EventsStorage) (*App, error) {
 	}, nil
 }
 
-func (a *App) CreateEvent(ctx context.Context, uID, title, desc, dur, noticeBefore string, startAt time.Time) error {
+func (a *App) CreateEvent(ctx context.Context, uID, title, desc, dur string, noticeB int32, startAt time.Time) error {
 	now := time.Now()
 	e := storage.Event{
 		UserID:        uID,
@@ -36,13 +36,13 @@ func (a *App) CreateEvent(ctx context.Context, uID, title, desc, dur, noticeBefo
 		Description:   desc,
 		StartDateTime: startAt,
 		Duration:      dur,
-		NoticeBefore:  noticeBefore,
+		NoticeBefore:  noticeB,
 		CreatedAt:     now,
 	}
 	return a.events.AddEvent(ctx, e)
 }
 
-func (a *App) UpdateEvent(ctx context.Context, uID, title, desc, dur, noticeBefore string, startAt time.Time) error {
+func (a *App) UpdateEvent(ctx context.Context, uID, title, desc, dur string, noticeB int32, startAt time.Time) error {
 	now := time.Now()
 	e := storage.Event{
 		UserID:        uID,
@@ -50,7 +50,7 @@ func (a *App) UpdateEvent(ctx context.Context, uID, title, desc, dur, noticeBefo
 		Description:   desc,
 		StartDateTime: startAt,
 		Duration:      dur,
-		NoticeBefore:  noticeBefore,
+		NoticeBefore:  noticeB,
 		CreatedAt:     now,
 	}
 	return a.events.UpdateEvent(ctx, e)
