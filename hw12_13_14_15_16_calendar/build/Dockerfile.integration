@@ -1,0 +1,18 @@
+FROM golang:1.24.3 AS test
+
+WORKDIR /go/src/app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+# Собираем тесты
+RUN CGO_ENABLED=0 go test -c -o /integration-tests ./tests/integration
+
+# Финальный образ на Alpine
+FROM alpine:3.19
+
+COPY --from=test /integration-tests /integration-tests
+
+CMD ["/integration-tests", "-test.v"]

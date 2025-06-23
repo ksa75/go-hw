@@ -1,0 +1,17 @@
+$env:LOG_LEVEL="DEBUG"
+$env:LOG_PATH="logs/access.log"
+# $env:LOG_PATH="/opt/calendar/logs/access.log"
+$env:POSTGRES_DSN="host=localhost port=5432 user=postgres password=postgres dbname=calendar sslmode=disable"
+# $env:POSTGRES_DSN="host=host.docker.internal port=5432 user=postgres password=postgres dbname=calendar sslmode=disable"
+$env:MIGRATION_PATH="migrations"
+$env:HTTP_HOST="0.0.0.0"
+$env:HTTP_PORT="8080"
+$env:GRPC_HOST="127.0.0.1"
+$env:GRPC_PORT="50051"
+$env:STORAGE_TYPE="sql"
+$env:QUEUE_URL="amqp://guest:guest@localhost:5672/"
+# $env:QUEUE_URL="amqp://guest:guest@host.docker.internal:5672/"
+$env:QUEUE_NAME="notifications"
+$env:SCHEDULER_INTERVAL=10
+$env:SCHEDULER_CLEANUP_DAYS=365
+$env:SENDER_LOG_LEVEL="info"

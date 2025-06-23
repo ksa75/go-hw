@@ -1,10 +1,27 @@
 package config
 
-import "github.com/BurntSushi/toml"
+import (
+	"fmt"
+	"os"
 
-func Read(fpath string) (c Config, err error) {
-	_, err = toml.DecodeFile(fpath, &c)
-	return
+	"github.com/BurntSushi/toml"
+)
+
+func Read(path string) (*Config, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read config: %w", err)
+	}
+
+	// Подставим переменные окружения в виде ${VAR}
+	expanded := os.ExpandEnv(string(raw))
+	// fmt.Println(expanded)
+	var cfg Config
+	if _, err := toml.Decode(expanded, &cfg); err != nil {
+		return nil, fmt.Errorf("decode toml: %w", err)
+	}
+
+	return &cfg, nil
 }
 
 type Config struct {

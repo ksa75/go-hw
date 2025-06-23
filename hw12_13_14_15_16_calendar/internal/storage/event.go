@@ -31,6 +31,6 @@ type Event struct {
 	Description   string
 	StartDateTime time.Time
 	Duration      string
-	NoticeBefore  string
+	NoticeBefore  int32
 	CreatedAt     time.Time
 }

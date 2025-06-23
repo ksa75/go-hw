@@ -1,1 +1,111 @@
-version: "3"
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: calendar_postgres
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: calendar
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - calendar_net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: calendar_rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Management UI (optional)
+    networks:
+      - calendar_net
+
+  calendar:
+    image: calendar:develop
+    container_name: calendar_app
+    ports:
+      - "8888:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL}
+      LOG_PATH: "${LOG_PATH}"
+      POSTGRES_DSN: "${POSTGRES_DSN}"
+      MIGRATION_PATH: "${MIGRATION_PATH}"
+      HTTP_HOST: "${HTTP_HOST}"
+      HTTP_PORT: "${HTTP_PORT}"
+      GRPC_HOST: "${GRPC_HOST}"
+      GRPC_PORT: "${GRPC_PORT}"
+      STORAGE_TYPE: "${STORAGE_TYPE}"
+      QUEUE_URL: "${QUEUE_URL}"
+      QUEUE_NAME: "${QUEUE_NAME}"
+      SCHEDULER_INTERVAL: ${SCHEDULER_INTERVAL}
+      SCHEDULER_CLEANUP_DAYS: ${SCHEDULER_CLEANUP_DAYS}
+      SENDER_LOG_LEVEL: "${SENDER_LOG_LEVEL}"
+    networks:
+      - calendar_net
+
+  calendar_scheduler:
+    image: calendar_scheduler:develop
+    container_name: calendar_scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      POSTGRES_DSN: "${POSTGRES_DSN}"
+      QUEUE_URL: "${QUEUE_URL}"
+      QUEUE_NAME: "${QUEUE_NAME}"
+      SCHEDULER_INTERVAL: ${SCHEDULER_INTERVAL}
+      SCHEDULER_CLEANUP_DAYS: ${SCHEDULER_CLEANUP_DAYS}
+    networks:
+      - calendar_net
+
+  calendar_sender:
+    image: calendar_sender:develop
+    container_name: calendar_sender
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      QUEUE_URL: "${QUEUE_URL}"
+      QUEUE_NAME: "${QUEUE_NAME}"
+      SCHEDULER_INTERVAL: ${SCHEDULER_INTERVAL}
+      SCHEDULER_CLEANUP_DAYS: ${SCHEDULER_CLEANUP_DAYS}
+    networks:
+      - calendar_net
+
+
+  integration-tests:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile.integration
+    depends_on:
+      - calendar
+      - calendar_sender
+      - calendar_scheduler
+    environment:
+      - TEST_TIMEOUT=60
+    networks:
+      - calendar_net
+
+volumes:
+  postgres_data:
+
+networks:
+  calendar_net:

@@ -2,9 +2,17 @@ BIN := "./bin/calendar"
 BIN_SENDER := "./bin/calendar_sender"
 BIN_SCHEDULER := "./bin/calendar_scheduler"
 DOCKER_IMG="calendar:develop"
+DOCKER_IMG_SENDER="calendar_sender:develop"
+DOCKER_IMG_SCHEDULER="calendar_scheduler:develop"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
+
+up:
+	cd deployments && docker compose up -d
+
+down:
+	cd deployments && docker compose down
 
 generate: install-protoc-deps
 	rm -rf api/calendarpb
@@ -33,15 +41,25 @@ build-img:
 		--build-arg=LDFLAGS="$(LDFLAGS)" \
 		-t $(DOCKER_IMG) \
 		-f build/Dockerfile .
+	docker build \
+		--build-arg=LDFLAGS="$(LDFLAGS)" \
+		-t $(DOCKER_IMG_SENDER) \
+		-f build/Dockerfile.sender .
+	docker build \
+		--build-arg=LDFLAGS="$(LDFLAGS)" \
+		-t $(DOCKER_IMG_SCHEDULER) \
+		-f build/Dockerfile.scheduler .
 
 run-img: build-img
 	docker run $(DOCKER_IMG)
 
 version: build
 	$(BIN) version
+	$(BIN_SCHEDULER) version
+	$(BIN_SENDER) version
 
 test:
-	go test -race ./internal/logger/... ./internal/storage/memory/... ./internal/server/http/... ./internal/server/grpc/...
+	go test -race ./internal/logger/... ./internal/storage/memory/... ./internal/server/http/... ./internal/server/grpc/... ./internal/scheduler/...
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v2.1.6
@@ -50,3 +68,28 @@ lint: install-lint-deps
 	golangci-lint run ./... --fix
 
 .PHONY: build run build-img run-img version test lint
+
+integration-tests:
+	cd deployments && \
+	docker compose down -v --remove-orphans || true && \
+	# docker compose build && \
+	docker compose up -d && \
+	echo "Looking up integration-tests container ID..."; \
+	CONTAINER_ID=$$(docker compose ps -a -q integration-tests); \
+	if [ -z "$$CONTAINER_ID" ]; then \
+		echo "Error: integration-tests container not found."; \
+		docker compose ps; \
+		docker compose logs; \
+		docker compose down -v --remove-orphans; \
+		exit 1; \
+	fi; \
+	echo "Found container ID: $$CONTAINER_ID"; \
+	echo "Waiting for integration-tests container to finish..."; \
+	while [ "$$(docker inspect -f '{{.State.Status}}' $$CONTAINER_ID)" = "running" ]; do \
+		sleep 1; \
+	done; \
+	echo "Fetching logs for integration-tests..."; \
+	docker compose logs integration-tests; \
+	RESULT=$$(docker inspect -f '{{.State.ExitCode}}' $$CONTAINER_ID); \
+	docker compose down -v --remove-orphans; \
+	exit $$RESULT

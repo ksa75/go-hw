@@ -29,7 +29,7 @@ type Event struct {
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	StartAt       *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
 	Duration      string                 `protobuf:"bytes,5,opt,name=duration,proto3" json:"duration,omitempty"`
-	NoticeBefore  string                 `protobuf:"bytes,6,opt,name=notice_before,json=noticeBefore,proto3" json:"notice_before,omitempty"`
+	NoticeBefore  int32                  `protobuf:"varint,6,opt,name=notice_before,json=noticeBefore,proto3" json:"notice_before,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -99,11 +99,11 @@ func (x *Event) GetDuration() string {
 	return ""
 }
 
-func (x *Event) GetNoticeBefore() string {
+func (x *Event) GetNoticeBefore() int32 {
 	if x != nil {
 		return x.NoticeBefore
 	}
-	return ""
+	return 0
 }
 
 type Empty struct {
@@ -337,7 +337,7 @@ const file_api_EventService_proto_rawDesc = "" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x125\n" +
 	"\bstart_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\astartAt\x12\x1a\n" +
 	"\bduration\x18\x05 \x01(\tR\bduration\x12#\n" +
-	"\rnotice_before\x18\x06 \x01(\tR\fnoticeBefore\"\a\n" +
+	"\rnotice_before\x18\x06 \x01(\x05R\fnoticeBefore\"\a\n" +
 	"\x05Empty\"2\n" +
 	"\fEventRequest\x12\"\n" +
 	"\x05event\x18\x01 \x01(\v2\f.event.EventR\x05event\"Z\n" +

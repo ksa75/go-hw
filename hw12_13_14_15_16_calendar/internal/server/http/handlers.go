@@ -12,7 +12,7 @@ type createOrUpdateEventRequest struct {
 	Description  string    `json:"description"`
 	StartAt      time.Time `json:"startAt"`
 	Duration     string    `json:"duration"`
-	NoticeBefore string    `json:"noticeBefore"`
+	NoticeBefore int32     `json:"noticeBefore"`
 }
 
 func (s *Server) createEventHandler(w http.ResponseWriter, r *http.Request) {

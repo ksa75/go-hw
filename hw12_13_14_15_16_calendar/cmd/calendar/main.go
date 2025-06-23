@@ -87,15 +87,15 @@ func mainImpl() error {
 	if conf.Storage.Type == "memory" {
 		then, _ := time.Parse("2006-01-02", "2025-07-21")
 		then1, _ := time.Parse("2006-01-02", "2025-12-21")
-		err = calendar.CreateEvent(ctx, "007", "test event1", "test event", "1h", "15m", then1)
+		err = calendar.CreateEvent(ctx, "007", "test event1", "test event", "1h", 15, then1)
 		if err != nil {
 			mylogger.Printf("failed to create event: %v", err)
 		}
-		err = calendar.CreateEvent(ctx, "006", "test event2", "test event", "1h", "15m", then)
+		err = calendar.CreateEvent(ctx, "006", "test event2", "test event", "1h", 15, then)
 		if err != nil {
 			mylogger.Printf("failed to create event: %v", err)
 		}
-		err = calendar.CreateEvent(ctx, "006", "test event3", "test event", "1h", "15m", then1)
+		err = calendar.CreateEvent(ctx, "006", "test event3", "test event", "1h", 15, then1)
 		if err != nil {
 			mylogger.Printf("failed to create event: %v", err)
 		}

@@ -11,7 +11,7 @@ message Event {
   string description = 3;
   google.protobuf.Timestamp start_at = 4;
   string duration = 5;
-  string notice_before = 6;
+  int32 notice_before = 6;
 }
 
 message Empty {}

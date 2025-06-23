@@ -61,7 +61,7 @@ func TestIntegration_GRPC_AddGetDeleteEvent(t *testing.T) {
 			Description:  "desc",
 			StartAt:      timestamppb.New(startAt),
 			Duration:     "1h",
-			NoticeBefore: "10m",
+			NoticeBefore: 10,
 		},
 	})
 	require.NoError(t, err)
@@ -117,7 +117,7 @@ func TestIntegration_GRPC_UpdateEvent(t *testing.T) {
 			Description:  "Initial description",
 			StartAt:      timestamppb.New(startAt),
 			Duration:     "1h",
-			NoticeBefore: "10m",
+			NoticeBefore: 10,
 		},
 	})
 	require.NoError(t, err)
@@ -130,7 +130,7 @@ func TestIntegration_GRPC_UpdateEvent(t *testing.T) {
 			Description:  "Updated description",
 			StartAt:      timestamppb.New(startAt),
 			Duration:     "2h",
-			NoticeBefore: "20m",
+			NoticeBefore: 20,
 		},
 	})
 	require.NoError(t, err)
@@ -144,7 +144,7 @@ func TestIntegration_GRPC_UpdateEvent(t *testing.T) {
 	require.Equal(t, "Updated Title", updated.Title)
 	require.Equal(t, "Updated description", updated.Description)
 	require.Equal(t, "2h", updated.Duration)
-	require.Equal(t, "20m", updated.NoticeBefore)
+	require.Equal(t, int32(20), updated.NoticeBefore)
 
 	// --- Cleanup
 	_, err = client.DeleteEvent(ctx, &pb.DeleteRequest{
@@ -186,7 +186,7 @@ func TestIntegration_GRPC_GetEventsByDayWeekMonth(t *testing.T) {
 			Description:  "desc",
 			StartAt:      timestamppb.New(startAt),
 			Duration:     "2h",
-			NoticeBefore: "15m",
+			NoticeBefore: 15,
 		},
 	})
 	require.NoError(t, err)

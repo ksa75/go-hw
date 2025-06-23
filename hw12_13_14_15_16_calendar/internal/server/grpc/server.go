@@ -10,8 +10,8 @@ import (
 )
 
 type Application interface {
-	CreateEvent(ctx context.Context, uID, title, desc, dur, noticeBefore string, startAt time.Time) error
-	UpdateEvent(ctx context.Context, uID, title, desc, dur, noticeBefore string, startAt time.Time) error
+	CreateEvent(ctx context.Context, uID, title, desc, dur string, noticeBefore int32, startAt time.Time) error
+	UpdateEvent(ctx context.Context, uID, title, desc, dur string, noticeBefore int32, startAt time.Time) error
 	DeleteEvent(ctx context.Context, userID string, start time.Time) error
 	GetEvents(ctx context.Context) ([]storage.Event, error)
 	GetEventsByDay(ctx context.Context, date time.Time) ([]storage.Event, error)
