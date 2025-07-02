@@ -1,48 +1,60 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert
-    kompose.version: 1.34.0 (cbf2835db)
-  labels:
-    io.kompose.service: calendar
   name: calendar
+  namespace: {{ .Values.namespace }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      io.kompose.service: calendar
+      app: calendar
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert
-        kompose.version: 1.34.0 (cbf2835db)
       labels:
-        io.kompose.service: calendar
+        app: calendar
     spec:
       containers:
-        - env:
-            - name: GRPC_HOST
-                valueFrom:
-                  secretKeyRef:
-                    name: {{ .Release.Name }}-secrets
-                    key: user
-            - name: GRPC_PORT
-            - name: HTTP_HOST
-            - name: HTTP_PORT
-            - name: LOG_LEVEL
-            - name: LOG_PATH
-            - name: MIGRATION_PATH
-            - name: POSTGRES_DSN
-            - name: QUEUE_NAME
-            - name: QUEUE_URL
-            - name: SCHEDULER_CLEANUP_DAYS
-            - name: SCHEDULER_INTERVAL
-            - name: SENDER_LOG_LEVEL
-            - name: STORAGE_TYPE
-          image: calendar:develop
-          name: calendar-app
-          ports:
-            - containerPort: 8080
-              protocol: TCP
+      - env:
+        - name: GRPC_HOST
+          value: {{ .Values.grpcHost }}
+        - name: GRPC_PORT
+          value: {{ .Values.grpcPort }}
+        - name: HTTP_HOST
+          value: {{ .Values.httpHost }}
+        - name: HTTP_PORT
+          value: {{ .Values.httpPort }}
+        - name: LOG_LEVEL
+          value: {{ .Values.logLevel }}
+        - name: LOG_PATH
+          value: {{ .Values.logPath }}
+        - name: MIGRATION_PATH
+          value: {{ .Values.migrationPath }}
+        - name: POSTGRES_DSN
+            valueFrom:
+              secretKeyRef:
+                name: secrets
+                key: postgresDSN
+        - name: QUEUE_NAME
+          value: {{ .Values.queueName }}
+        - name: QUEUE_URL
+            valueFrom:
+              secretKeyRef:
+                name: secrets
+                key: queueURL
+        - name: SCHEDULER_CLEANUP_DAYS
+          value: {{ .Values.scheduler.cleanupDays }}
+        - name: SCHEDULER_INTERVAL
+          value: {{ .Values.scheduler.interval }}
+        - name: SENDER_LOG_LEVEL
+          value: {{ .Values.sender.logLevel }}
+        - name: STORAGE_TYPE
+          value: "sql"
+        ports:
+        - containerPort: {{ .Values.httpPort }}
+          protocol: TCP
+        - containerPort: {{ .Values.grpcPort }}
+          protocol: TCP
+        image: calendar:develop
+        name: calendar-app
+        pullPolicy: {{ .Values.image.pullPolicy }}
       restartPolicy: Always

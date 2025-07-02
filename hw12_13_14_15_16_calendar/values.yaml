@@ -1,13 +1,35 @@
+namespace: calendar
+
 replicaCount: 1
 
+
+logLevel: "DEBUG"
+logPath: "/opt/calendar/logs/access.log"
+migrationPath: "migrations"
+queueName: "notifications"
+
+scheduler:
+  interval: 10
+  cleanupDays: 365
+
+sender:
+  logLevel: "info"
+
+db:
+  pvSize: "10Mi"
+  storageClassName: "yc-network-hdd"
+
 image:
-  repository: my-calendar-app
-  tag: "latest"
+  repository: "nexus.aton.ru"
+  tag: "develop"
   pullPolicy: IfNotPresent
 
 service:
   type: ClusterIP
-  port: 80
+  httpHost: "0.0.0.0"
+  httpPort: 8080
+  grpcHost: "0.0.0.0"
+  grpcPort: 50051 
 
 ingress:
   enabled: false

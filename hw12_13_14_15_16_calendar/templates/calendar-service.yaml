@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    kompose.cmd: kompose convert
-    kompose.version: 1.34.0 (cbf2835db)
   labels:
-    io.kompose.service: calendar
+    app: calendar
   name: calendar
+  namespace: {{ .Values.namespace }}
 spec:
   ports:
-    - name: "8888"
-      port: 8888
-      targetPort: 8080
+  - name: "{{ .Values.service.httpPort }}"
+    port: {{ .Values.service.httpPort }}
+  - name: "{{ .Values.service.grpcPort }}"
+    port: {{ .Values.service.grpcPort }}
+  type: {{ .Values.service.type }}
   selector:
-    io.kompose.service: calendar
+    app: calendar
