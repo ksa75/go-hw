@@ -1,3 +1,5 @@
+{{- if .Values.db.enabled }}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,20 +20,20 @@ spec:
       containers:
       - env:
         - name: POSTGRES_DB
-            valueFrom:
-              secretKeyRef:
-                name: secrets
-                key: dbName
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: dbName
         - name: POSTGRES_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: secrets
-                key: dbPassword
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: dbPassword
         - name: POSTGRES_USER
-            valueFrom:
-              secretKeyRef:
-                name: secrets
-                key: dbUser
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: dbUser
         image: postgres:14
         livenessProbe:
           exec:
@@ -48,9 +50,12 @@ spec:
             protocol: TCP
         volumeMounts:
           - mountPath: /var/lib/postgresql/data
+            subPath: postgres
             name: postgres-data
       restartPolicy: Always
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: postgres-data
+
+{{- end }}
