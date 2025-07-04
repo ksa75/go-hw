@@ -16,11 +16,12 @@ sender:
   logLevel: "info"
 
 db:
-  pvSize: "10Mi"
+  enabled: true
+  pvSize: "1Gi"
   storageClassName: "yc-network-hdd"
 
 image:
-  repository: "dockerhub.com"
+  repository: "registry.aton.ru/infra/k8s/"
   tag: "develop"
   pullPolicy: IfNotPresent
 
@@ -29,15 +30,18 @@ service:
   httpHost: "0.0.0.0"
   httpPort: 8080
   grpcHost: "0.0.0.0"
-  grpcPort: 50051 
+  grpcPort: 50051
 
 ingress:
-  enabled: false
-  annotations: {}
-  hosts:
-    - host: chart-example.local
-      paths: []
-  tls: []
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  ingressClassName: nginx
+  host: calendar.apps.mks2.aton.global
+  tls:
+  - hosts:
+    - calendar.apps.mks2.aton.global
+    secretName: calendar.apps.mks2.aton.global-tls
 
 resources: {}
 nodeSelector: {}
