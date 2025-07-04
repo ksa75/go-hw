@@ -1,21 +1,47 @@
+namespace: calendar
+
 replicaCount: 1
 
+
+logLevel: "DEBUG"
+logPath: "/opt/calendar/logs/access.log"
+migrationPath: "migrations"
+queueName: "notifications"
+
+scheduler:
+  interval: 10
+  cleanupDays: 365
+
+sender:
+  logLevel: "info"
+
+db:
+  enabled: true
+  pvSize: "1Gi"
+  storageClassName: "yc-network-hdd"
+
 image:
-  repository: my-calendar-app
-  tag: "latest"
+  repository: "registry.aton.ru/infra/k8s/"
+  tag: "develop"
   pullPolicy: IfNotPresent
 
 service:
   type: ClusterIP
-  port: 80
+  httpHost: "0.0.0.0"
+  httpPort: 8080
+  grpcHost: "0.0.0.0"
+  grpcPort: 50051
 
 ingress:
-  enabled: false
-  annotations: {}
-  hosts:
-    - host: chart-example.local
-      paths: []
-  tls: []
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  ingressClassName: nginx
+  host: calendar.apps.mks2.aton.global
+  tls:
+  - hosts:
+    - calendar.apps.mks2.aton.global
+    secretName: calendar.apps.mks2.aton.global-tls
 
 resources: {}
 nodeSelector: {}

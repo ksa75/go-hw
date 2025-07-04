@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calendar-sender
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: calendar-sender
+  template:
+    metadata:
+      labels:
+        app: calendar-sender
+    spec:
+      containers:
+      - name: calendar-sender
+        image: {{ .Values.image.repository }}calendar_sender:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: QUEUE_NAME
+          value: {{ .Values.queueName }}
+        - name: QUEUE_URL
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: queueURL
+        - name: SCHEDULER_CLEANUP_DAYS
+          value: "{{ .Values.scheduler.cleanupDays }}"
+        - name: SCHEDULER_INTERVAL
+          value: "{{ .Values.scheduler.interval }}"
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: regcred

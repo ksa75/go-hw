@@ -1,0 +1,61 @@
+{{- if .Values.db.enabled }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: dbName
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: dbPassword
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: dbUser
+        image: postgres:14
+        livenessProbe:
+          exec:
+            command:
+              - pg_isready
+              - -U
+              - postgres
+          failureThreshold: 5
+          periodSeconds: 5
+          timeoutSeconds: 5
+        name: calendar-postgres
+        ports:
+          - containerPort: 5432
+            protocol: TCP
+        volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            subPath: postgres
+            name: postgres-data
+      restartPolicy: Always
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data
+
+{{- end }}

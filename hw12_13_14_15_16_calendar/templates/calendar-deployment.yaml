@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calendar
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: calendar
+  template:
+    metadata:
+      labels:
+        app: calendar
+    spec:
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: calendar-app
+        ports:
+        - containerPort: {{ .Values.service.httpPort }}
+          protocol: TCP
+        - containerPort: {{ .Values.service.grpcPort }}
+          protocol: TCP
+        image: {{ .Values.image.repository }}calendar:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: GRPC_HOST
+          value: {{ .Values.service.grpcHost }}
+        - name: GRPC_PORT
+          value: "{{ .Values.service.grpcPort }}"
+        - name: HTTP_HOST
+          value: {{ .Values.service.httpHost }}
+        - name: HTTP_PORT
+          value: "{{ .Values.service.httpPort }}"
+        - name: LOG_LEVEL
+          value: {{ .Values.logLevel }}
+        - name: LOG_PATH
+          value: {{ .Values.logPath }}
+        - name: MIGRATION_PATH
+          value: {{ .Values.migrationPath }}
+        - name: POSTGRES_DSN
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: postgresDSN
+        - name: QUEUE_NAME
+          value: {{ .Values.queueName }}
+        - name: QUEUE_URL
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: queueURL
+        - name: SCHEDULER_CLEANUP_DAYS
+          value: "{{ .Values.scheduler.cleanupDays }}"
+        - name: SCHEDULER_INTERVAL
+          value: "{{ .Values.scheduler.interval }}"
+        - name: SENDER_LOG_LEVEL
+          value: {{ .Values.sender.logLevel }}
+        - name: STORAGE_TYPE
+          value: "sql"
