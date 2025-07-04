@@ -20,7 +20,7 @@ db:
   storageClassName: "yc-network-hdd"
 
 image:
-  repository: "nexus.aton.ru"
+  repository: "dockerhub.com"
   tag: "develop"
   pullPolicy: IfNotPresent
 
